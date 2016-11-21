@@ -34,5 +34,6 @@ mkdir $agenta
 #	-jar $server_package\
 #	--conf $conf
 
-# TODO create dir for each agent containing eismassconfig.xml and eismassimconfig.xml
-
+# TODO create dir for each agent containing eismassconfig.xml and javaagentsconfig.xml
+# first just has connections/usernames/passwords
+# second has name/connection/javaclass/team
