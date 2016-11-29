@@ -8,7 +8,7 @@ IFS=$'\n\t'
 basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # JARs
 server_package=$basedir/massim/target/agentcontest-2013-1.4.jar
-agent_package=$basedir/javaagents/target/javaagents-2.1.jar
+agent_packages=$basedir/redrovers/build/redrovers.jar:$basedir/javaagents/target/javaagents-2.1.jar
 
 default_server_conf=2013-cse431comp.xml
 
@@ -33,8 +33,8 @@ mkdir $output
 pushd $output
 mkdir backup
 
-(popd; cd $agenta; java -ea -jar $agent_package >$basedir/$output/teama.log 2>$basedir/$output/teama_err.log) &
-(popd; cd $agentb; java -ea -jar $agent_package >$basedir/$output/teamb.log 2>$basedir/$output/teamb_err.log) &
+(popd; cd $agenta; java -ea -cp $agent_packages massim.javaagents.App >$basedir/$output/teama.log 2>$basedir/$output/teama_err.log) &
+(popd; cd $agentb; java -ea -cp $agent_packages massim.javaagents.App >$basedir/$output/teamb.log 2>$basedir/$output/teamb_err.log) &
 (java -Xss20000k -cp $server_package massim.competition2013.monitor.GraphMonitor -rmihost localhost -rmiport 1099 -savexmls >/dev/null 2>/dev/null) &
 
 java -ea -Dcom.sun.management.jmxremote -Xss2000k -Xmx600M -DentityExpansionLimit=1000000 -DelementAttributeLimit=1000000 -Djava.rmi.server.hostname=$(hostname -f)\
