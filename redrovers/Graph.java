@@ -207,6 +207,16 @@ public class Graph
 		return null;
 	}
 
+	public void nodeValue(String id, int value)
+	{
+		getNode(id).value = value;
+	}
+
+	public Integer nodeValue(String id)
+	{
+		return getNode(id).value;
+	}
+
 	@Override
 	public String toString()
 	{

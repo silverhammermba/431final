@@ -29,7 +29,6 @@ public class RedAgent extends Agent
 	 *  edges(num)
 	 *  vertices(num)
 	 *  visibleEdge(id, id)
-	 *  visibleVertex(id)
 	 *  probedVertex(id, num)
 	 */
 	int money;
@@ -39,8 +38,6 @@ public class RedAgent extends Agent
 	int zonesScore; // score from team's zones
 	int step;
 	int steps;
-
-	Action lastAction; // temp variable for populating prevActions
 
 	/* percepts not currently stored:
 	 *  achievement(id)
@@ -52,6 +49,7 @@ public class RedAgent extends Agent
 	 *  requestAction
 	 *  timestamp(num)
 	 *  visibleEntity(id, id, id, id)
+	 *  visibleVertex(id)
 	 */
 
 	public RedAgent(String name, String team)
@@ -63,6 +61,7 @@ public class RedAgent extends Agent
 
 	private void updateState()
 	{
+		System.err.println(getName() + "UPDATING");
 		Action[] last = new Action[1];
 		for (Percept percept: getAllPercepts()) handlePercept(percept, last);
 		if (last[0] != null)
@@ -91,6 +90,7 @@ public class RedAgent extends Agent
 				id = params.get(0);
 				break;
 			case "lastAction":
+				System.err.println(getName() + " " + percept);
 				if (last[0] == null)
 					last[0] = new Action(params.get(0));
 				else
@@ -98,6 +98,8 @@ public class RedAgent extends Agent
 				break;
 			case "lastActionParam":
 			case "lastActionResult":
+				System.err.println(getName() + " " + percept);
+				System.err.println("params " + params);
 				if (last[0] == null)
 					last[0] = new Action("unknown", new Identifier(params.get(0)));
 				else
@@ -106,18 +108,61 @@ public class RedAgent extends Agent
 					lp.add(new Identifier(params.get(0)));
 					last[0] = new Action(last[0].getName(), lp);
 				}
+				break;
+			case "lastStepScore":
+				lastStepScore = Integer.parseInt(params.get(0));
+				break;
+			case "maxEnergy":
+				maxEnergy = Integer.parseInt(params.get(0));
+				break;
+			case "maxEnergyDisabled":
+				maxEnergyDisabled = Integer.parseInt(params.get(0));
+				break;
+			case "maxHealth":
+				maxHealth = Integer.parseInt(params.get(0));
+				break;
+			case "money":
+				money = Integer.parseInt(params.get(0));
+				break;
 			case "position":
 				position = params.get(0);
 				graph.visit(position);
 				break;
+			case "probedVertex":
+				graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
+				break;
+			case "role":
+				role = params.get(0);
+				break;
+			case "score":
+				score = Integer.parseInt(params.get(0));
+				break;
+			case "step":
+				step = Integer.parseInt(params.get(0));
+				break;
+			case "steps":
+				steps = Integer.parseInt(params.get(0));
+				break;
+			case "strength":
+				strength = Integer.parseInt(params.get(0));
+				break;
+			case "surveyedEdge":
+				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
+				break;
 			case "vertices":
 				graph.total_verts = Integer.parseInt(params.get(0));
+				break;
+			case "visRange":
+				visRange = Integer.parseInt(params.get(0));
 				break;
 			case "visibleEdge":
 				graph.addEdge(params.get(0), params.get(1));
 				break;
-			case "surveyedEdge":
-				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
+			case "zoneScore":
+				zoneScore = Integer.parseInt(params.get(0));
+				break;
+			case "zonesScore":
+				zonesScore = Integer.parseInt(params.get(0));
 				break;
 			default:
 				System.err.println(getName() + " can't handle percept " + percept);
@@ -127,11 +172,15 @@ public class RedAgent extends Agent
 	@Override
 	public void handlePercept(Percept percept)
 	{
+		System.err.println("Cannot hanlde percepts-as-notifications");
+		System.exit(1);
 	}
 
 	@Override
 	public Action step()
 	{
+		updateState();
+		System.out.println(this);
 
 		if (position == null) return MarsUtil.skipAction();
 
@@ -155,5 +204,31 @@ public class RedAgent extends Agent
 				return MarsUtil.rechargeAction();
 			return MarsUtil.gotoAction(dest);
 		}
+	}
+
+	@Override
+	public String toString()
+	{
+		String str = "";
+		str += id + " - " + role + "\n";
+		str += "❤ " + health + "/" + maxHealth + "\n";
+		str += "⚡ " + energy + "/" + (health == 0 ? maxEnergyDisabled : maxEnergy) + "\n";
+		str += "vis " + visRange + "\n";
+		str += "str " + strength + "\n\n";
+		str += "pos " + position + "\n";
+		if (!prevActions.isEmpty())
+		{
+			str += prevActions.get(prevActions.size() - 1) + "\n";
+		}
+
+		str += "Team:\n";
+		str += "score: " + score + "\n";
+		str += "last step: " + lastStepScore + "\n";
+		str += "zone: " + zoneScore + "\n";
+		str += "all zones: " + zonesScore + "\n\n";
+
+		str += "sim step " + step + "/" + steps;
+
+		return str;
 	}
 }
