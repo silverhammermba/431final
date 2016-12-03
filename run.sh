@@ -1,9 +1,5 @@
 #!/bin/bash
 
-if [ $(uname -o) == "Cygwin" ]; then
-	echo "CYGWIN"
-fi
-
 # strict mode
 set -euo pipefail
 IFS=$'\n\t'
@@ -12,7 +8,14 @@ IFS=$'\n\t'
 basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # JARs
 server_package=$basedir/massim/target/agentcontest-2013-1.4.jar
-agent_packages=$basedir/redrovers/build/redrovers.jar:$basedir/javaagents/target/javaagents-2.1.jar
+agent_pack1=$basedir/redrovers/build/redrovers.jar
+agent_pack2=$basedir/javaagents/target/javaagents-2.1.jar
+agent_packages=$agent_pack1:$agent_pack2
+
+if [ $(uname -o) == "Cygwin" ]; then
+	server_package=$(cygpath -w $server_package)
+	agent_packages=$(cygpath -w $agent_pack1):$(cygpath -w $agent_pack2)
+fi
 
 default_server_conf=2013-cse431comp.xml
 
