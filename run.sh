@@ -12,11 +12,6 @@ agent_pack1=$basedir/redrovers/build/redrovers.jar
 agent_pack2=$basedir/javaagents/target/javaagents-2.1.jar
 agent_packages=$agent_pack1:$agent_pack2
 
-if [ $(uname -o) == "Cygwin" ]; then
-	server_package=$(cygpath -w $server_package)
-	agent_packages=$(cygpath -w $agent_pack1):$(cygpath -w $agent_pack2)
-fi
-
 default_server_conf=2013-cse431comp.xml
 
 if [ $# -lt 3 ] || [ $# -gt 4 ]; then
@@ -35,6 +30,12 @@ output=$1
 agenta=$2
 agentb=$3
 server_conf=${4:-$basedir/massim/scripts/conf/$default_server_conf}
+
+if [ $(uname -o) == "Cygwin" ]; then
+	server_package=$(cygpath -w $server_package)
+	agent_packages=$(cygpath -w $agent_pack1):$(cygpath -w $agent_pack2)
+	server_conf=$(cygpath -w $server_conf)
+fi
 
 mkdir $output
 pushd $output
