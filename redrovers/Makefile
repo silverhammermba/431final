@@ -5,7 +5,7 @@ build/redrovers.jar: classes
 
 classes: $(JAVA)
 	mkdir -p build
-	javac -d build -classpath ../javaagents/target/javaagents-2.1.jar $(JAVA)
+	javac -Xlint -d build -classpath ../javaagents/target/javaagents-2.1.jar $(JAVA)
 	touch classes
 
 run: build/redrovers.jar
