@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ $(uname -o) -eq "Cygwin" ]; then
+	echo "CYGWIN"
+fi
+
 # strict mode
 set -euo pipefail
 IFS=$'\n\t'
