@@ -8,7 +8,7 @@ classes: $(JAVA)
 	javac -d build -classpath ../javaagents/target/javaagents-2.1.jar $(JAVA)
 	touch classes
 
-run:
+run: build/redrovers.jar
 	rm -rf out
 	../run.sh out conf ../javaagents/scripts/conf/dummy10b
 
