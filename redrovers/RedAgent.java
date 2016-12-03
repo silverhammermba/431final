@@ -12,13 +12,11 @@ public class RedAgent extends Agent
 	Graph graph;
 	String position;
 	int energy;
-	boolean fuckit;
 
 	public RedAgent(String name, String team)
 	{
 		super(name, team);
 		graph = new Graph();
-		fuckit = true;
 	}
 
 	@Override
