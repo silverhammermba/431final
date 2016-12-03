@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $(uname -o) -eq "Cygwin" ]; then
+if [ $(uname -o) == "Cygwin" ]; then
 	echo "CYGWIN"
 fi
 
