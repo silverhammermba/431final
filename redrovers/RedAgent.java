@@ -12,7 +12,6 @@ import massim.javaagents.agents.MarsUtil;
 public class RedAgent extends Agent
 {
 	// member variables for storing percept information
-	String id; // agent name?
 	String role; // agent role
 	int energy;
 	int maxEnergy;
@@ -40,16 +39,17 @@ public class RedAgent extends Agent
 	int steps;
 
 	/* percepts not currently stored:
+	 *  id(id)
 	 *  achievement(id)
 	 *  bye
 	 *  deadline(num)
 	 *  ranking(num)
+	 *  requestAction
 	 *  simEnd
 	 *  simStart
-	 *  requestAction
 	 *  timestamp(num)
 	 *  visibleEntity(id, id, id, id)
-	 *  visibleVertex(id)
+	 *  visibleVertex(id) TODO should be stored to track enemy zones
 	 */
 
 	public RedAgent(String name, String team)
@@ -86,24 +86,25 @@ public class RedAgent extends Agent
 			case "health":
 				health = Integer.parseInt(params.get(0));
 				break;
-			case "id":
-				id = params.get(0);
-				break;
 			case "lastAction":
-				System.err.println(getName() + " " + percept);
 				if (last[0] == null)
+					// initialize last action
 					last[0] = new Action(params.get(0));
 				else
+					// update last action's name
 					last[0] = new Action(params.get(0), last[0].getParameters());
 				break;
 			case "lastActionParam":
-			case "lastActionResult":
-				System.err.println(getName() + " " + percept);
-				System.err.println("params " + params);
+			case "lastActionResult": // treat result as just another param
+				// these are never valid parameters
+				if (params.get(0) == "" || params.get(0) == "null") break;
+
 				if (last[0] == null)
+					// initialize last action
 					last[0] = new Action("unknown", new Identifier(params.get(0)));
 				else
 				{
+					// update last action's parameters
 					LinkedList<Parameter> lp = last[0].getParameters();
 					lp.add(new Identifier(params.get(0)));
 					last[0] = new Action(last[0].getName(), lp);
@@ -180,7 +181,7 @@ public class RedAgent extends Agent
 	public Action step()
 	{
 		updateState();
-		System.out.println(this);
+		System.err.println(this);
 
 		if (position == null) return MarsUtil.skipAction();
 
@@ -210,7 +211,7 @@ public class RedAgent extends Agent
 	public String toString()
 	{
 		String str = "";
-		str += id + " - " + role + "\n";
+		str += getName() + " - " + role + "\n";
 		str += "❤ " + health + "/" + maxHealth + "\n";
 		str += "⚡ " + energy + "/" + (health == 0 ? maxEnergyDisabled : maxEnergy) + "\n";
 		str += "vis " + visRange + "\n";
@@ -221,7 +222,7 @@ public class RedAgent extends Agent
 			str += prevActions.get(prevActions.size() - 1) + "\n";
 		}
 
-		str += "Team:\n";
+		str += "TEAM STATUS\n";
 		str += "score: " + score + "\n";
 		str += "last step: " + lastStepScore + "\n";
 		str += "zone: " + zoneScore + "\n";
