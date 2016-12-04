@@ -183,28 +183,8 @@ public class RedAgent extends Agent
 		updateState();
 		System.err.println(this);
 
-		if (position == null) return MarsUtil.skipAction();
-
-		// if we have unsurveyed edges next to us, survey them
-		if (graph.unknownNearby(position))
-		{
-			if (energy == 0) return MarsUtil.rechargeAction();
-			return MarsUtil.surveyAction();
-		}
-
-		String dest = graph.explore(position);
-
-		if (dest == null)
-		{
-			System.err.println(getName() + " is done exploring");
-			return MarsUtil.skipAction();
-		}
-		else
-		{
-			if (graph.edgeWeight(position, dest) > energy)
-				return MarsUtil.rechargeAction();
-			return MarsUtil.gotoAction(dest);
-		}
+		// TODO do something
+		return MarsUtil.skipAction();
 	}
 
 	@Override
