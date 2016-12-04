@@ -1,11 +1,14 @@
 package redrovers;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+
+import apltk.interpreter.data.LogicBelief;
 
 public class Graph
 {
@@ -17,6 +20,7 @@ public class Graph
 		// for path finding
 		public int distance;
 		public Node pred;
+		public int value;
 
 		public Node(String id)
 		{
@@ -74,12 +78,16 @@ public class Graph
 	public Integer total_edges;
 	// nodes (which contain the edges)
 	private Map<String, Node> nodes;
+	private RedAgent agent;
+	private ArrayList<String> connected;
 
-	public Graph()
+	public Graph(RedAgent agent)
 	{
+		this.agent = agent;
 		this.total_verts = null;
 		this.total_edges = null;
 		nodes = new HashMap<String, Node>();
+		connected = new ArrayList<String>();
 	}
 
 	// do we know of an edge between nodes named id1 and id2?
@@ -98,13 +106,24 @@ public class Graph
 	// add an edge between nodes named id1 and id2 (with unknown weight)
 	public boolean addEdge(String id1, String id2)
 	{
-		return addEdge(id1, id2, null);
+		return addEdge(id1, id2, null, "");
 	}
 	// add an edge between nodes named id1 and id2 with given weight
-	public boolean addEdge(String id1, String id2, Integer weight)
+	public boolean addEdge(String id1, String id2, Integer weight, String a)
 	{
+		if(!a.equals("")){
+			if((nodes.containsKey(id1) || nodes.containsKey(id2)) && !connected.contains(a)){
+				connected.add(a);
+			}
+			Node n1 = getNode(id1);
+			Node n2 = getNode(id2);
+			n1.addEdge(n2, weight);
+			n2.addEdge(n1, weight);
+			return true;
+		}
 		if (!hasEdge(id1, id2) || (weight != null && edgeWeight(id1, id2) == null))
 		{
+			agent.broadcastBelief(new LogicBelief("newEdge", Arrays.asList(id1, id2, weight.toString(), agent.getName())));
 			Node n1 = getNode(id1);
 			Node n2 = getNode(id2);
 			n1.addEdge(n2, weight);
@@ -234,5 +253,9 @@ public class Graph
 		if (nodes.containsKey(n1)) return nodes.get(n1);
 		nodes.put(n1, new Node(n1));
 		return nodes.get(n1);
+	}
+	
+	public void nodeValue(String id, int value){
+		nodes.get(id).value = value;
 	}
 }
