@@ -12,5 +12,8 @@ run: build/redrovers.jar
 	rm -rf out
 	../run.sh out conf ../javaagents/scripts/conf/dummy10b
 
+replay:
+	java -Xss20000k -cp ../massim/target/agentcontest-2013-1.4.jar massim.competition2013.monitor.GraphFileViewer -dir $(wildcard out/xmls/*)
+
 clean:
 	rm -rf build classes
