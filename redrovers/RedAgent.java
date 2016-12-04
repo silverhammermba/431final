@@ -7,6 +7,8 @@ import java.util.List;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
+
+//...
 public class RedAgent extends Agent
 {
 	Graph graph;
@@ -65,7 +67,7 @@ public class RedAgent extends Agent
 		{
 			if (energy == 0) return MarsUtil.rechargeAction();
 			return MarsUtil.surveyAction();
-		}
+			}
 
 		String dest = graph.explore(position);
 
