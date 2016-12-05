@@ -17,9 +17,10 @@ public class OtherAgent
 	public Integer visRange;
 	public Integer strength;
 
-	public OtherAgent(String name)
+	public OtherAgent(String name, String team)
 	{
 		this.name = name;
+		this.team = team;
 	}
 
 	@Override

@@ -74,51 +74,49 @@ public class RedAgent extends Agent
 		graph = new Graph(this);
 	}
 
-	private void updateState()
+	private void handleBelief(LogicBelief belief, Action[] last, OtherAgent sender)
 	{
-		Action[] last = new Action[1];
-		for (Percept percept: getAllPercepts()) handlePercept(percept, last);
-		if (last[0] != null && !last[0].getName().equals("unknownAction"))
-			prevActions.add(last[0]);
-		
-		broadcastBelief(new LogicBelief("done"));
-	}
-
-	private void handlePercept(Percept percept, Action[] last)
-	{
-		// convert percept parameters to strings
-		List<String> params = new ArrayList<String>();
-		for (Parameter p : percept.getParameters())
-			params.add("" + p);
+		List<String> params = belief.getParameters();
 		OtherAgent agent; // for inspectedEntity and visibleEntity
 
-		LogicBelief belief;
-		switch (percept.getName())
+		switch (belief.getPredicate())
 		{
 			case "edges":
 				graph.total_edges = Integer.parseInt(params.get(0));
 				break;
 			case "energy":
-				energy = Integer.parseInt(params.get(0));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					energy = Integer.parseInt(params.get(0));
+					broadcastBelief(belief);
+				}
+				else
+					sender.energy = Integer.parseInt(params.get(0));
 				break;
 			case "health":
-				health = Integer.parseInt(params.get(0));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					health = Integer.parseInt(params.get(0));
+					broadcastBelief(belief);
+				}
+				else
+					sender.health = Integer.parseInt(params.get(0));
 				break;
 			case "inspectedEntity":
-				agent = getAgent(params.get(0));
+				// TODO handle team
+				agent = getAgent(params.get(0), params.get(1));
 				agent.team      = params.get(1);
 				agent.role      = params.get(2);
 				agent.position  = params.get(3);
+				agent.energy    = Integer.parseInt(params.get(4));
+				agent.maxEnergy = Integer.parseInt(params.get(5));
 				agent.health    = Integer.parseInt(params.get(6));
 				agent.maxHealth = Integer.parseInt(params.get(7));
 				agent.strength  = Integer.parseInt(params.get(8));
 				agent.visRange  = Integer.parseInt(params.get(9));
-				agent.energy    = Integer.parseInt(params.get(4));
-				agent.maxEnergy = Integer.parseInt(params.get(5));
-				
-				broadcastBelief(perceptToBelief(percept));
+
+				if (sender == null)
+					broadcastBelief(belief);
 				break;
 			case "lastAction":
 				if (last[0] == null)
@@ -148,28 +146,49 @@ public class RedAgent extends Agent
 				lastStepScore = Integer.parseInt(params.get(0));
 				break;
 			case "maxEnergy":
-				maxEnergy = Integer.parseInt(params.get(0));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					maxEnergy = Integer.parseInt(params.get(0));
+					broadcastBelief(belief);
+				}
+				else
+					sender.maxEnergy = Integer.parseInt(params.get(0));
 				break;
 			case "maxHealth":
-				maxHealth = Integer.parseInt(params.get(0));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					maxHealth = Integer.parseInt(params.get(0));
+					broadcastBelief(belief);
+				}
+				else
+					sender.maxHealth = Integer.parseInt(params.get(0));
 				break;
 			case "money":
 				money = Integer.parseInt(params.get(0));
 				break;
 			case "position":
-				position = params.get(0);
-				broadcastBelief(perceptToBelief(percept));
-				graph.visit(position);
+				if (sender == null)
+				{
+					position = params.get(0);
+					graph.visit(position);
+					broadcastBelief(belief);
+				}
+				else
+					sender.position = params.get(0);
 				break;
 			case "probedVertex":
 				graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+					broadcastBelief(belief);
 				break;
 			case "role":
-				role = params.get(0);
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					role = params.get(0);
+					broadcastBelief(belief);
+				}
+				else
+					sender.role = params.get(0);
 				break;
 			case "score":
 				score = Integer.parseInt(params.get(0));
@@ -181,18 +200,24 @@ public class RedAgent extends Agent
 				steps = Integer.parseInt(params.get(0));
 				break;
 			case "strength":
-				strength = Integer.parseInt(params.get(0));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					strength = Integer.parseInt(params.get(0));
+					broadcastBelief(belief);
+				}
+				else
+					sender.strength = Integer.parseInt(params.get(0));
 				break;
 			case "surveyedEdge":
 				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+					broadcastBelief(belief);
 				break;
 			case "vertices":
 				graph.total_verts = Integer.parseInt(params.get(0));
 				break;
 			case "visibleEntity":
-				agent = getAgent(params.get(0));
+				agent = getAgent(params.get(0), params.get(2));
 				agent.position = params.get(1);
 				agent.team = params.get(2);
 				if (params.get(3).equals("normal"))
@@ -210,15 +235,22 @@ public class RedAgent extends Agent
 				}
 				else
 						agent.health = 0;
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+					broadcastBelief(belief);
 				break;
 			case "visRange":
-				visRange = Integer.parseInt(params.get(0));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+				{
+					visRange = Integer.parseInt(params.get(0));
+					broadcastBelief(belief);
+				}
+				else
+					sender.visRange = Integer.parseInt(params.get(0));
 				break;
 			case "visibleEdge":
 				graph.addEdge(params.get(0), params.get(1));
-				broadcastBelief(perceptToBelief(percept));
+				if (sender == null)
+					broadcastBelief(belief);
 				break;
 			case "zoneScore":
 				zoneScore = Integer.parseInt(params.get(0));
@@ -227,7 +259,10 @@ public class RedAgent extends Agent
 				zonesScore = Integer.parseInt(params.get(0));
 				break;
 			default:
-				System.err.println(getName() + " can't handle percept " + percept);
+				if (sender == null)
+					System.err.println(getName() + " can't handle percept " + belief);
+				else
+					System.err.println(getName() + " can't handle message " + belief);
 		}
 	}
 
@@ -239,9 +274,9 @@ public class RedAgent extends Agent
 		return new LogicBelief(percept.getName(), params);
 	}
 
-	private OtherAgent getAgent(String name)
+	private OtherAgent getAgent(String name, String team)
 	{
-		if (!agents.containsKey(name)) agents.put(name, new OtherAgent(name));
+		if (!agents.containsKey(name)) agents.put(name, new OtherAgent(name, team));
 		return agents.get(name);
 	}
 
@@ -256,119 +291,35 @@ public class RedAgent extends Agent
 	public Action step()
 	{
 		handleMessages();
-		updateState();
+		handlePercepts();
 		// the wonderful agent framework asks for actions before the simulation has even started
 		if (steps == 0) return new Action("unknownAction");
 
 		return MarsUtil.skipAction();
 	}
 
+	private void handlePercepts()
+	{
+		Action[] last = new Action[1];
+		for (Percept percept: getAllPercepts()) handleBelief(perceptToBelief(percept), last, null);
+		if (last[0] != null && !last[0].getName().equals("unknownAction"))
+			prevActions.add(last[0]);
+	}
+
 	private void handleMessages()
 	{
-		
-
-		Collection<Message> messages = getMessages();
-		
 		OtherAgent agent;
-		
-		for(Message message: messages){
-			Belief b = message.value;
-			if(b instanceof LogicBelief){
-				LogicBelief l = (LogicBelief)b;
-				String pred = (l).getPredicate();
-				List<String> params = l.getParameters();
-				switch(pred){
-				    
-					case "visited":
-						graph.visit(params.get(0));
-						break;
-					case "newEdge":
-						graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
-						break;
-					case "energy":
-						getAgent(message.sender).energy = Integer.parseInt(params.get(0));
-						break;
-					case "health":
-						getAgent(message.sender).health = Integer.parseInt(params.get(0));
-						break;
-					case "maxEnergy":
-						getAgent(message.sender).maxEnergy = Integer.parseInt(params.get(0));
-						break;
-					case "maxHealth":
-						getAgent(message.sender).maxHealth = Integer.parseInt(params.get(0));
-						break;
-					case "visRange":
-						getAgent(message.sender).visRange = Integer.parseInt(params.get(0));
-						break;
-					case "strength":
-						getAgent(message.sender).strength = Integer.parseInt(params.get(0));
-						break;
-					case "role":
-						getAgent(message.sender).role = params.get(0);
-						break;
-					case "position":
-						getAgent(message.sender).position = params.get(0);
-						break;
-					
-					case "inspectedEntity":
-						agent = getAgent(params.get(0));
-						agent.team      = params.get(1);
-						agent.role      = params.get(2);
-						agent.position  = params.get(3);
-						agent.health    = Integer.parseInt(params.get(6));
-						agent.maxHealth = Integer.parseInt(params.get(7));
-						agent.strength  = Integer.parseInt(params.get(8));
-						agent.visRange  = Integer.parseInt(params.get(9));
-						agent.energy    = Integer.parseInt(params.get(4));
-						agent.maxEnergy = Integer.parseInt(params.get(5));
-						break;
-						
-					case "probedVertex":
-						graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
-						break;
-					
-					case "surveyedEdge":
-						graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
-						break;
-					
-					case "visibleEntity":
-						agent = getAgent(params.get(0));
-						agent.position = params.get(1);
-						agent.team = params.get(2);
-						if (params.get(3).equals("normal"))
-						{
-							// agent is not disabled
-							if (agent.maxHealth == null)
-								agent.health = 1; // don't know max health, choose some arbitrary value
-							else // XXX assume the worst
-							{
-								if (agent.team.equals(getTeam()))
-									agent.health = 1;
-								else
-									agent.health = agent.maxHealth;
-							}
-						}
-						else
-								agent.health = 0;
-						break;
-						
-					case "visibleEdge":
-						graph.addEdge(params.get(0), params.get(1));
-						break;
-					
-						
-						
-					
-					default:
-						System.err.println(getName() + " can't handle message " + message);
-				}
+
+		for(Message message: getMessages())
+		{
+			if (!(message.value instanceof LogicBelief))
+			{
+				System.err.println("Unknown message belief: " + message.value);
+				continue;
 			}
+
+			handleBelief((LogicBelief)message.value, null, getAgent(message.sender, getTeam()));
 		}
-			
-			
-		
-		
-		
 	}
 
 	@Override
