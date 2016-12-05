@@ -217,7 +217,7 @@ public class RedAgent extends Agent
 	@Override
 	public void handlePercept(Percept percept)
 	{
-		System.err.println("Cannot hanlde percepts-as-notifications");
+		System.err.println("Cannot handle percepts-as-notifications");
 		System.exit(1);
 	}
 
