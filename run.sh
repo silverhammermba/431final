@@ -8,7 +8,9 @@ IFS=$'\n\t'
 basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # JARs
 server_package=$basedir/massim/target/agentcontest-2013-1.4.jar
-agent_packages=$basedir/redrovers/build/redrovers.jar:$basedir/javaagents/target/javaagents-2.1.jar
+agent_pack1=$basedir/redrovers/build/redrovers.jar
+agent_pack2=$basedir/javaagents/target/javaagents-2.1.jar
+agent_packages=$agent_pack1:$agent_pack2
 
 default_server_conf=2013-cse431comp.xml
 
@@ -29,13 +31,19 @@ agenta=$2
 agentb=$3
 server_conf=${4:-$basedir/massim/scripts/conf/$default_server_conf}
 
+if [ $(uname -o) == "Cygwin" ]; then
+	server_package=$(cygpath -w $server_package)
+	agent_packages=$(cygpath -wp $agent_packages)
+	server_conf=$(cygpath -w $server_conf)
+fi
+
 mkdir $output
 pushd $output
 output=$(pwd)
 mkdir backup
 
-(popd; cd $agenta; java -ea -cp $agent_packages massim.javaagents.App >$output/teama.log 2>$output/teama_err.log) &
-(popd; cd $agentb; java -ea -cp $agent_packages massim.javaagents.App >$output/teamb.log 2>$output/teamb_err.log) &
+(popd; cd $agenta; java -ea -classpath $agent_packages massim.javaagents.App >$output/teama.log 2>$output/teama_err.log) &
+(popd; cd $agentb; java -ea -classpath $agent_packages massim.javaagents.App >$output/teamb.log 2>$output/teamb_err.log) &
 (java -Xss20000k -cp $server_package massim.competition2013.monitor.GraphMonitor -rmihost localhost -rmiport 1099 -savexmls >/dev/null 2>/dev/null) &
 
 java -ea -Dcom.sun.management.jmxremote -Xss2000k -Xmx600M -DentityExpansionLimit=1000000 -DelementAttributeLimit=1000000 -Djava.rmi.server.hostname=$(hostname -f)\
