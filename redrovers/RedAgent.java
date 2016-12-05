@@ -269,20 +269,96 @@ public class RedAgent extends Agent
 
 		Collection<Message> messages = getMessages();
 		
+		OtherAgent agent;
+		
 		for(Message message: messages){
 			Belief b = message.value;
 			if(b instanceof LogicBelief){
 				LogicBelief l = (LogicBelief)b;
 				String pred = (l).getPredicate();
-				
+				List<String> params = l.getParameters();
 				switch(pred){
 				    
 					case "visited":
-						graph.visit(l.getParameters().get(0));
+						graph.visit(params.get(0));
 						break;
 					case "newEdge":
-						graph.addEdge(l.getParameters().get(0), l.getParameters().get(1), Integer.parseInt(l.getParameters().get(2)));
+						graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
 						break;
+					case "energy":
+						getAgent(message.sender).energy = Integer.parseInt(params.get(0));
+						break;
+					case "health":
+						getAgent(message.sender).health = Integer.parseInt(params.get(0));
+						break;
+					case "maxEnergy":
+						getAgent(message.sender).maxEnergy = Integer.parseInt(params.get(0));
+						break;
+					case "maxHealth":
+						getAgent(message.sender).maxHealth = Integer.parseInt(params.get(0));
+						break;
+					case "visRange":
+						getAgent(message.sender).visRange = Integer.parseInt(params.get(0));
+						break;
+					case "strength":
+						getAgent(message.sender).strength = Integer.parseInt(params.get(0));
+						break;
+					case "role":
+						getAgent(message.sender).role = params.get(0);
+						break;
+					case "position":
+						getAgent(message.sender).position = params.get(0);
+						break;
+					
+					case "inspectedEntity":
+						agent = getAgent(params.get(0));
+						agent.team      = params.get(1);
+						agent.role      = params.get(2);
+						agent.position  = params.get(3);
+						agent.health    = Integer.parseInt(params.get(6));
+						agent.maxHealth = Integer.parseInt(params.get(7));
+						agent.strength  = Integer.parseInt(params.get(8));
+						agent.visRange  = Integer.parseInt(params.get(9));
+						agent.energy    = Integer.parseInt(params.get(4));
+						agent.maxEnergy = Integer.parseInt(params.get(5));
+						break;
+						
+					case "probedVertex":
+						graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
+						break;
+					
+					case "surveyedEdge":
+						graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
+						break;
+					
+					case "visibleEntity":
+						agent = getAgent(params.get(0));
+						agent.position = params.get(1);
+						agent.team = params.get(2);
+						if (params.get(3).equals("normal"))
+						{
+							// agent is not disabled
+							if (agent.maxHealth == null)
+								agent.health = 1; // don't know max health, choose some arbitrary value
+							else // XXX assume the worst
+							{
+								if (agent.team.equals(getTeam()))
+									agent.health = 1;
+								else
+									agent.health = agent.maxHealth;
+							}
+						}
+						else
+								agent.health = 0;
+						break;
+						
+					case "visibleEdge":
+						graph.addEdge(params.get(0), params.get(1));
+						break;
+					
+						
+						
+					
 					default:
 						System.err.println(getName() + " can't handle message " + message);
 				}
