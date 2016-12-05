@@ -262,4 +262,36 @@ public class Graph
 		nodes.put(n1, new Node(n1));
 		return nodes.get(n1);
 	}
+
+	public List<String> nodesAtRange(String id, int range)
+	{
+		Set<Node> visited = new HashSet<Node>();
+		Set<Node> next = new HashSet<Node>();
+		next.add(getNode(id));
+
+		int r = 0;
+
+		while (r < range)
+		{
+			for (Node n : next)
+				visited.add(n);
+			next.clear();
+
+			for (Node n : visited)
+			{
+				for (Edge e : n.neighbors.values())
+				{
+					if (!visited.contains(e.end) && !next.contains(e.end))
+						next.add(e.end);
+				}
+			}
+
+			++r;
+		}
+
+		List<String> nodes = new ArrayList<String>();
+		for (Node n : next)
+			nodes.add(n.id);
+		return nodes;
+	}
 }
