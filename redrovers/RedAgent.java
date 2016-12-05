@@ -4,10 +4,16 @@ import eis.iilang.Identifier;
 import eis.iilang.Parameter;
 import eis.iilang.Percept;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import apltk.interpreter.data.Belief;
+import apltk.interpreter.data.LogicBelief;
+import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
@@ -65,7 +71,7 @@ public class RedAgent extends Agent
 		super(name, team);
 		prevActions = new ArrayList<Action>();
 		agents = new HashMap<String, OtherAgent>();
-		graph = new Graph();
+		graph = new Graph(this);
 	}
 
 	private void updateState()
@@ -145,6 +151,10 @@ public class RedAgent extends Agent
 				break;
 			case "position":
 				position = params.get(0);
+				if(!graph.nodes.containsValue(position)){
+					LogicBelief belief = new LogicBelief("visited", Arrays.asList(position));
+					this.broadcastBelief(belief);
+				}
 				graph.visit(position);
 				break;
 			case "probedVertex":
@@ -166,7 +176,7 @@ public class RedAgent extends Agent
 				strength = Integer.parseInt(params.get(0));
 				break;
 			case "surveyedEdge":
-				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
+				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)), "");
 				break;
 			case "vertices":
 				graph.total_verts = Integer.parseInt(params.get(0));
@@ -228,8 +238,30 @@ public class RedAgent extends Agent
 		// the wonderful agent framework asks for actions before the simulation has even started
 		if (steps == 0) return new Action("unknownAction");
 
-		// TODO do something
+		handleMessages();
+
 		return MarsUtil.skipAction();
+	}
+
+	private void handleMessages(){
+		Collection<Message> messages = getMessages();
+		for(Message message: messages){
+			Belief b = message.value;
+			if(b instanceof LogicBelief){
+				LogicBelief l = (LogicBelief)b;
+				String pred = (l).getPredicate();
+				switch(pred){
+					case "visited":
+						graph.visit(l.getParameters().get(0));
+						break;
+					case "newEdge":
+						graph.addEdge(l.getParameters().get(0), l.getParameters().get(1), Integer.parseInt(l.getParameters().get(2)), message.sender);
+						break;
+					default:
+						System.err.println(getName() + " can't handle message " + message);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -254,7 +286,7 @@ public class RedAgent extends Agent
 				str += agent.toString() + "\n";
 		}
 
-		str += "TEAM " + getTeam() + " STATUS\n";
+		str += "TEAM STATUS\n";
 		str += "score: " + score + "\n";
 		str += "last step: " + lastStepScore + "\n";
 		str += "zone: " + zoneScore + "\n";
