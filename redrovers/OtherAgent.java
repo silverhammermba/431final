@@ -1,8 +1,10 @@
 package redrovers;
 
-/* the wonderful agent framework automatically manages all Agent instances,
+/**
+ * This class is a simple public structure for storing information about other agents.
+ *
+ * The wonderful agent framework automatically manages all Agent instances,
  * which means we can't use that class to track other agents we observe.
- * Thus:
  */
 public class OtherAgent
 {

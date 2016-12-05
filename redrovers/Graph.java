@@ -10,8 +10,19 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import apltk.interpreter.data.LogicBelief;
 
+/**
+ * This class defines a collection of nodes and edges suitable for storing the
+ * map of Mars.
+ *
+ * <p>The internal representations of nodes and edges are private since agents
+ * should not rely on them. Instead define public methods for accessing
+ * node/edge atrributes through the Graph object e.g. {@link nodesAtRange}.
+ */
 public class Graph
 {
+	/* A node has an id, value, and a map from IDs to edges. Also a visisted
+	 * flag but that's a bit of hack that we need to think about.
+	 */
 	private class Node
 	{
 		public final String id;
@@ -62,6 +73,8 @@ public class Graph
 		}
 	}
 
+	// an edge just a node and a weight (the other node on the edge is
+	// determined by which node has this edge in its neighbors map).
 	private class Edge
 	{
 		public final Node end;
@@ -78,8 +91,11 @@ public class Graph
 	public Integer total_verts;
 	public Integer total_edges;
 	// nodes (which contain the edges)
-	Map<String, Node> nodes;
+	private Map<String, Node> nodes;
 
+	/**
+	 * Create a graph of unknown size with no nodes or edges.
+	 */
 	public Graph()
 	{
 		this.total_verts = null;
@@ -87,27 +103,53 @@ public class Graph
 		nodes = new HashMap<String, Node>();
 	}
 
-	// do we know of an edge between nodes named id1 and id2?
+	/** Indicate whether we know of edge between two nodes.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @return true if both nodes are in the graph and have an edge between
+	 *         them, otherwise false.
+	 */
 	public boolean hasEdge(String id1, String id2)
 	{
 		return nodes.containsKey(id1) && getNode(id1).hasEdge(id2);
 	}
 
-	// get edge weight between nodes named id1 and id2
-	// XXX WE MUST KNOW OF AN EDGE BETWEEN THESE NODES
+	/**
+	 * Get the weight of an edge.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @return the weight of the edge between the two nodes
+	 * @throws NullPointerException if either node does not exist or there is
+	 *         no edge between them. Use {@link hasEdge} first.
+	 */
 	public Integer edgeWeight(String id1, String id2)
 	{
 		return nodes.get(id1).neighbors.get(id2).weight;
 	}
 
-	// add an edge between nodes named id1 and id2 (with unknown weight)
+	/**
+	 * Add an edge between two nodes with an unknown weight.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @return true if this was a new edge (or new nodes)
+	 */
 	public boolean addEdge(String id1, String id2)
 	{
 		return addEdge(id1, id2, null);
 	}
 
-	// add an edge between nodes named id1 and id2 with given weight
-	// return indicates whether this is new info or not
+	/**
+	 * Add a edge between two nodes.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @param weight the weight of the edge (null if unknown)
+	 * @return true if this was a new edge, new node, or new weight for an
+	 *         existing edge
+	 */
 	public boolean addEdge(String id1, String id2, Integer weight)
 	{
 		// if its a new edge, or a new edge weight
@@ -122,12 +164,22 @@ public class Graph
 		return false;
 	}
 
+	/**
+	 * Determine how many vertices are left to discover.
+	 *
+	 * @return the number of undiscovered vertices or null if unknown.
+	 */
 	public Integer numUnknownVerts()
 	{
 		if (total_verts == null) return null;
 		return total_verts - nodes.size();
 	}
 
+	/**
+	 * Determine how many edges are left to discover
+	 *
+	 * @return the number of undiscovered edges or null if unknown.
+	 */
 	public Integer numUnknownEdges()
 	{
 		if (total_edges == null) return null;
@@ -141,12 +193,25 @@ public class Graph
 		return total_edges - edges / 2;
 	}
 
+	/**
+	 * Flag a node as visited.
+	 *
+	 * <b>TODO</b> this is hacky. We need a better way to figure which nodes
+	 * might have undiscovered edges.
+	 *
+	 * @param id the node's ID
+	 */
 	public void visit(String id)
 	{
 		getNode(id).visited = true;
 	}
 
-	// check if a node has unsurveyed edges connected
+	/**
+	 * Check if a node has edges with unknown weights.
+	 *
+	 * @param id the node's ID
+	 * @return true if the node has edges with null weight, else false
+	 */
 	public boolean unknownNearby(String id)
 	{
 		for (Edge edge : getNode(id).neighbors.values())
@@ -157,8 +222,14 @@ public class Graph
 		return false;
 	}
 
-	// return the next node to goto--starting from sid--in order to get to a
-	// node you haven't visited yet or a node that has unsurveyed edges
+	/**
+	 * Get a node to goto in order to explore the graph.
+	 *
+	 * @param sid the ID of the node the agent is at
+	 * @return the ID of the node to goto. Repeatedly using this method for
+	 *         gotos will eventually get the agent to a node that has not been
+	 *         visited or has edges with unknown weights.
+	 */
 	public String explore(String sid)
 	{
 		// reset all node predecessors (from previous path-finding attempts
@@ -221,11 +292,23 @@ public class Graph
 		return null;
 	}
 
-	// get/set the value of a node
+	/**
+	 * Get the value of a node.
+	 *
+	 * @param id the node's ID
+	 * @return the value of the node or null if unknown
+	 */
 	public Integer nodeValue(String id)
 	{
 		return getNode(id).value;
 	}
+
+	/**
+	 * Set the value of a node.
+	 *
+	 * @param id the node's ID
+	 * @param value the new value
+	 */
 	public void nodeValue(String id, int value)
 	{
 		getNode(id).value = value;
@@ -234,6 +317,7 @@ public class Graph
 	@Override
 	public String toString()
 	{
+		// TODO double-prints edges
 		String s = "";
 		for (Node node : nodes.values())
 		{
@@ -263,6 +347,13 @@ public class Graph
 		return nodes.get(n1);
 	}
 
+	/**
+	 * Get nodes that are a certain number of hops away from a node.
+	 *
+	 * @param id the starting node's ID
+	 * @param range the number of hops away from that node (number of edges)
+	 * @return a list of node IDs that are <i>exactly</i> that many hops from the starting node
+	 */
 	public List<String> nodesAtRange(String id, int range)
 	{
 		Set<Node> visited = new HashSet<Node>();
@@ -271,7 +362,7 @@ public class Graph
 
 		int r = 0;
 
-		while (r < range)
+		while (r < range && !next.isEmpty())
 		{
 			for (Node n : next)
 				visited.add(n);

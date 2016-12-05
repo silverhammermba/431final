@@ -17,11 +17,21 @@ import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
+/**
+ * This class defines a (slightly) higher-level API on top of the Agent class.
+ *
+ * <p>This class implements the abstract <code>step</code> method, processes
+ * all percepts and stores them in appropriate fields for easier access
+ * <i>and</i> broadcasts all (relevant) percepts to other agents on the team.
+ * Role-specific logic is then handled in the <code>think</code> method, after
+ * all percepts and simple messages have been dealt with.
+ */
 public abstract class RedAgent extends Agent
 {
+	// copied from team conf
 	protected static final int teamSize = 10;
 
-	// member variables for storing percept information
+	// fields for storing percept information
 	protected String role;
 	protected int energy;
 	protected int maxEnergy;
@@ -30,22 +40,33 @@ public abstract class RedAgent extends Agent
 	protected int visRange;
 	protected int strength;
 	protected String position; // node id
-	protected List<Action> prevActions; // previous actions (results added as params)
-	protected Map<String, OtherAgent> agents; // info about other agents
-	/* agents tracks the following percepts:
-	 *  inspectedEntity(id, id, id, id, num, num, num, num, num, num)
-	 *  visibleEntity(id, id, id, id)
+	/**
+	 * A list of previous actions with the action outcomes added as parameters.
+	 *
+	 * <p>This unifies the percepts lastAction, lastActionParam, and
+	 * lastActionResult. Invalid parameters such as "" and "null" are not
+	 * stored. unknownAction actions are not stored.
+	 *
+	 * <p>The ordering of the result parameter is arbitrary. For example
+	 * goto(success,v22) and goto(v22,failed_random) are both possible Actions
+	 * in this list.
 	 */
-	abstract Action think();
-	
+	protected List<Action> prevActions;
+	/**
+	 * A map from agent IDs to {@link OtherAgent} objects for tracking other agents.
+	 *
+	 * <p>This unifies the percepts inspectedEntity and visibleEntity. To
+	 * ensure a consistent state, the map should be accessed using {@link getAgent}.
+	 */
+	protected Map<String, OtherAgent> agents;
+	/**
+	 * The map of mars.
+	 *
+	 * <p>This unifies the percepts surveyedEdge, edges, vertices, visibleEdge,
+	 * probedVertex. <b>TODO</b> it should also store the visibleVertex percept
+	 * for tracking team zones.
+	 */
 	protected Graph graph;
-	/* graph tracks the following percepts:
-	 *  surveyedEdge(id, id, num)
-	 *  edges(num)
-	 *  vertices(num)
-	 *  visibleEdge(id, id)
-	 *  probedVertex(id, num)
-	 */
 	protected int money; // team money
 	protected int score; // total score
 	protected int lastStepScore; // score last step
@@ -65,9 +86,9 @@ public abstract class RedAgent extends Agent
 	 *  simEnd
 	 *  simStart
 	 *  timestamp(num)
-	 *  visibleVertex(id) TODO should be stored to track enemy zones
 	 */
 
+	// same as super, just inits some structures
 	public RedAgent(String name, String team)
 	{
 		super(name, team);
@@ -76,6 +97,7 @@ public abstract class RedAgent extends Agent
 		graph = new Graph();
 	}
 
+	// convert percept to belief (for the handleBelief method)
 	private LogicBelief perceptToBelief(Percept percept)
 	{
 		List<String> params = new ArrayList<String>();
@@ -84,12 +106,23 @@ public abstract class RedAgent extends Agent
 		return new LogicBelief(percept.getName(), params);
 	}
 
-	private OtherAgent getAgent(String name, String team)
+	/**
+	 * Get the internal representation for an agent with the given id and team.
+	 *
+	 * <p>The agent is constructed first if the representation does not yet
+	 * exist. In fact team parameter is ignored if agent is already known.
+	 *
+	 * @param id the id of the agent to get
+	 * @param team the team of the agent (if it must be constructed)
+	 * @return the internal representation of the agent
+	 */
+	protected OtherAgent getAgent(String id, String team)
 	{
-		if (!agents.containsKey(name)) agents.put(name, new OtherAgent(name, team));
-		return agents.get(name);
+		if (!agents.containsKey(id)) agents.put(id, new OtherAgent(id, team));
+		return agents.get(id);
 	}
 
+	// mandatory but unused
 	@Override
 	public void handlePercept(Percept percept)
 	{
@@ -97,6 +130,10 @@ public abstract class RedAgent extends Agent
 		System.exit(1);
 	}
 
+	/**
+	 * Handle all percepts sent by other agents, then our own percepts, then
+	 * calls <code>think</code> (if the simulation has started).
+	 */
 	@Override
 	public Action step()
 	{
@@ -107,11 +144,15 @@ public abstract class RedAgent extends Agent
 		// the wonderful agent framework asks for actions before the simulation has even started
 		if (steps == 0) return new Action("unknownAction");
 
-		
 		return think();
-		
 	}
 
+	/**
+	 * Role-specific action selection.
+	 */
+	abstract Action think();
+
+	// store all of our own percepts in fields (using handleBelief)
 	private void handlePercepts()
 	{
 		// hack to allow handleBelief to pass back an action
@@ -123,6 +164,7 @@ public abstract class RedAgent extends Agent
 			prevActions.add(last[0]);
 	}
 
+	// store all percepts from other agents in fields (using handleBelief)
 	private void handleMessages()
 	{
 		for (Message message: getMessages())
@@ -139,8 +181,9 @@ public abstract class RedAgent extends Agent
 		}
 	}
 
-	// store a belief in whatever member variable makes sense
-	// last passes out a last action, sender is the sender of the belief (if any)
+	/* store a belief in whatever member variable makes sense
+	 * last passes out a last action, sender is the sender of the belief (if any)
+	 */
 	private void handleBelief(LogicBelief belief, Action[] last, OtherAgent sender)
 	{
 		List<String> params = belief.getParameters();
@@ -341,8 +384,8 @@ public abstract class RedAgent extends Agent
 		str += getName() + " (" + getTeam() + ") - " + role + "\n";
 		str += "❤ " + health + "/" + maxHealth + "\n";
 		str += "⚡ " + energy + "/" + maxEnergy + "\n";
-		str += "vis " + visRange + "\n";
-		str += "str " + strength + "\n";
+		str += "→ " + visRange + "\n";
+		str += "† " + strength + "\n";
 		str += "pos " + position + "\n";
 		if (!prevActions.isEmpty())
 		{
