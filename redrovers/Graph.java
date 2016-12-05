@@ -13,6 +13,7 @@ public class Graph
 	{
 		public final String id;
 		public final Map<String, Edge> neighbors;
+		public Integer value;
 		public boolean visited;
 		// for path finding
 		public int distance;
@@ -22,6 +23,7 @@ public class Graph
 		{
 			this.id = id;
 			neighbors = new HashMap<String, Edge>();
+			value = null;
 			visited = false;
 		}
 
@@ -203,6 +205,16 @@ public class Graph
 		}
 
 		return null;
+	}
+
+	public void nodeValue(String id, int value)
+	{
+		getNode(id).value = value;
+	}
+
+	public Integer nodeValue(String id)
+	{
+		return getNode(id).value;
 	}
 
 	@Override
