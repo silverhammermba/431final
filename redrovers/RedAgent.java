@@ -90,6 +90,7 @@ public class RedAgent extends Agent
 			params.add("" + p);
 		OtherAgent agent; // for inspectedEntity and visibleEntity
 
+		LogicBelief belief;
 		switch (percept.getName())
 		{
 			case "edges":
@@ -97,9 +98,13 @@ public class RedAgent extends Agent
 				break;
 			case "energy":
 				energy = Integer.parseInt(params.get(0));
+				belief = new LogicBelief("energy",new String[]{String.valueOf(energy)}); 
+				broadcastBelief(belief);
 				break;
 			case "health":
 				health = Integer.parseInt(params.get(0));
+				belief = new LogicBelief("health",new String[]{String.valueOf(health)}); 
+				broadcastBelief(belief);
 				break;
 			case "inspectedEntity":
 				agent = getAgent(params.get(0));
@@ -112,6 +117,9 @@ public class RedAgent extends Agent
 				agent.visRange  = Integer.parseInt(params.get(9));
 				agent.energy    = Integer.parseInt(params.get(4));
 				agent.maxEnergy = Integer.parseInt(params.get(5));
+				
+				belief = new LogicBelief("",new String[]{String.valueOf(health)}); 
+				broadcastBelief(belief);
 				break;
 			case "lastAction":
 				if (last[0] == null)
@@ -142,17 +150,23 @@ public class RedAgent extends Agent
 				break;
 			case "maxEnergy":
 				maxEnergy = Integer.parseInt(params.get(0));
+				belief = new LogicBelief("maxEnergy",new String[]{String.valueOf(maxEnergy)}); 
+				broadcastBelief(belief);
 				break;
 			case "maxHealth":
 				maxHealth = Integer.parseInt(params.get(0));
+				belief = new LogicBelief("maxHealth",new String[]{String.valueOf(maxHealth)}); 
+				broadcastBelief(belief);
 				break;
 			case "money":
 				money = Integer.parseInt(params.get(0));
+				belief = new LogicBelief("money",new String[]{String.valueOf(money)}); 
+				broadcastBelief(belief);
 				break;
 			case "position":
 				position = params.get(0);
 				if(!graph.nodes.containsValue(position)){
-					LogicBelief belief = new LogicBelief("visited", Arrays.asList(position));
+					belief = new LogicBelief("visited", Arrays.asList(position));
 					this.broadcastBelief(belief);
 				}
 				graph.visit(position);
