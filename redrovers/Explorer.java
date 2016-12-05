@@ -22,11 +22,29 @@ public class Explorer extends RedAgent
 	public Explorer(String name, String team){
 		super(name,team);
 	}
+	
 	Action think(){
-		if(graph.nodeValue(position) == null){
-			return MarsUtil.probeAction();
+		
+		if(!role.equals("Explorer")){
+			System.err.println("wrong class for agent!");
+			return MarsUtil.skipAction();	
+		}
+		
+		
+		List<String> nodes;
+		for(int i = 0; i < visRange; ++i){
+			nodes = graph.nodesAtRange(position,visRange);
+			for(String id:nodes){
+				if(graph.nodeValue(id) == null){
+					if(energy < 1 + i){
+						return MarsUtil.rechargeAction();
+					}
+					return MarsUtil.probeAction(id);
+				}
+			}
 		}
 		
 		return MarsUtil.skipAction();
+		
 	}
 }

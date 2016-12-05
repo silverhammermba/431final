@@ -19,26 +19,26 @@ import massim.javaagents.agents.MarsUtil;
 
 public abstract class RedAgent extends Agent
 {
-	private static final int teamSize = 10;
+	protected static final int teamSize = 10;
 
 	// member variables for storing percept information
-	private String role;
-	private int energy;
-	private int maxEnergy;
-	private int health;
-	private int maxHealth;
-	private int visRange;
-	private int strength;
-	private String position; // node id
-	private List<Action> prevActions; // previous actions (results added as params)
-	private Map<String, OtherAgent> agents; // info about other agents
+	protected String role;
+	protected int energy;
+	protected int maxEnergy;
+	protected int health;
+	protected int maxHealth;
+	protected int visRange;
+	protected int strength;
+	protected String position; // node id
+	protected List<Action> prevActions; // previous actions (results added as params)
+	protected Map<String, OtherAgent> agents; // info about other agents
 	/* agents tracks the following percepts:
 	 *  inspectedEntity(id, id, id, id, num, num, num, num, num, num)
 	 *  visibleEntity(id, id, id, id)
 	 */
 	abstract Action think();
 	
-	private Graph graph;
+	protected Graph graph;
 	/* graph tracks the following percepts:
 	 *  surveyedEdge(id, id, num)
 	 *  edges(num)
@@ -46,13 +46,13 @@ public abstract class RedAgent extends Agent
 	 *  visibleEdge(id, id)
 	 *  probedVertex(id, num)
 	 */
-	private int money; // team money
-	private int score; // total score
-	private int lastStepScore; // score last step
-	private int zoneScore; // this vehicle's zone's score
-	private int zonesScore; // score from team's zones
-	private int step; // current step of simulation
-	private int steps; // total simulation steps
+	protected int money; // team money
+	protected int score; // total score
+	protected int lastStepScore; // score last step
+	protected int zoneScore; // this vehicle's zone's score
+	protected int zonesScore; // score from team's zones
+	protected int step; // current step of simulation
+	protected int steps; // total simulation steps
 
 	/* percepts not currently stored:
 	 *  id(id)
