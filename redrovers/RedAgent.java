@@ -232,6 +232,14 @@ public class RedAgent extends Agent
 		}
 	}
 
+	private LogicBelief perceptToBelief(Percept percept)
+	{
+		List<String> params = new ArrayList<String>();
+		for (Parameter p : percept.getParameters())
+			params.add("" + p);
+		return new LogicBelief(percept.getName(), params);
+	}
+
 	private OtherAgent getAgent(String name)
 	{
 		if (!agents.containsKey(name)) agents.put(name, new OtherAgent(name));
