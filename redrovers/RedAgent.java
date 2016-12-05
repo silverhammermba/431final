@@ -4,6 +4,7 @@ import eis.iilang.Identifier;
 import eis.iilang.Parameter;
 import eis.iilang.Percept;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -111,6 +112,10 @@ public class RedAgent extends Agent
 				break;
 			case "position":
 				position = params.get(0);
+				if(!graph.nodes.containsValue(position)){
+					LogicBelief belief = new LogicBelief("visited", Arrays.asList(position));
+					this.broadcastBelief(belief);
+				}
 				graph.visit(position);
 				break;
 			case "probedVertex":
@@ -201,8 +206,12 @@ public class RedAgent extends Agent
 				LogicBelief l = (LogicBelief)b;
 				String pred = (l).getPredicate();
 				switch(pred){
+					case "visited":
+						graph.visit(l.getParameters().get(0));
+						break;
 					case "newEdge":
 						graph.addEdge(l.getParameters().get(0), l.getParameters().get(1), Integer.parseInt(l.getParameters().get(2)), message.sender);
+						break;
 					default:
 						System.err.println(getName() + " can't handle message " + message);
 				}

@@ -77,17 +77,18 @@ public class Graph
 	public Integer total_verts;
 	public Integer total_edges;
 	// nodes (which contain the edges)
-	private Map<String, Node> nodes;
-	private RedAgent agent;
-	private ArrayList<String> connected;
+	Map<String, Node> nodes;
+	private final RedAgent agent;
+	ArrayList<String> connected;
 
-	public Graph(RedAgent agent)
+	public Graph(RedAgent a)
 	{
-		this.agent = agent;
+		agent = a;
 		this.total_verts = null;
 		this.total_edges = null;
 		nodes = new HashMap<String, Node>();
 		connected = new ArrayList<String>();
+		connected.add(agent.getName());
 	}
 
 	// do we know of an edge between nodes named id1 and id2?
@@ -114,7 +115,11 @@ public class Graph
 		if(!a.equals("")){
 			if((nodes.containsKey(id1) || nodes.containsKey(id2)) && !connected.contains(a)){
 				connected.add(a);
+				if(connected.size() == 10){
+					System.out.println("All agents are connected");
+				}
 			}
+			System.out.println("added edge " + id1 + " " + id2);
 			Node n1 = getNode(id1);
 			Node n2 = getNode(id2);
 			n1.addEdge(n2, weight);
@@ -123,7 +128,10 @@ public class Graph
 		}
 		if (!hasEdge(id1, id2) || (weight != null && edgeWeight(id1, id2) == null))
 		{
-			agent.broadcastBelief(new LogicBelief("newEdge", Arrays.asList(id1, id2, weight.toString(), agent.getName())));
+			if(weight != null){
+				LogicBelief belief = new LogicBelief("newEdge", Arrays.asList(id1, id2, String.valueOf(weight)));
+				agent.broadcastBelief(belief);
+			}
 			Node n1 = getNode(id1);
 			Node n2 = getNode(id2);
 			n1.addEdge(n2, weight);
