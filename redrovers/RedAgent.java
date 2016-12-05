@@ -71,9 +71,72 @@ public class RedAgent extends Agent
 		super(name, team);
 		prevActions = new ArrayList<Action>();
 		agents = new HashMap<String, OtherAgent>();
-		graph = new Graph(this);
+		graph = new Graph();
 	}
 
+	private LogicBelief perceptToBelief(Percept percept)
+	{
+		List<String> params = new ArrayList<String>();
+		for (Parameter p : percept.getParameters())
+			params.add("" + p);
+		return new LogicBelief(percept.getName(), params);
+	}
+
+	private OtherAgent getAgent(String name, String team)
+	{
+		if (!agents.containsKey(name)) agents.put(name, new OtherAgent(name, team));
+		return agents.get(name);
+	}
+
+	@Override
+	public void handlePercept(Percept percept)
+	{
+		System.err.println("Cannot handle percepts-as-notifications");
+		System.exit(1);
+	}
+
+	@Override
+	public Action step()
+	{
+		// process messages first, because they might be outdated
+		handleMessages();
+		// then process percepts, possibly updating message info
+		handlePercepts();
+		// the wonderful agent framework asks for actions before the simulation has even started
+		if (steps == 0) return new Action("unknownAction");
+
+		return MarsUtil.skipAction();
+	}
+
+	private void handlePercepts()
+	{
+		// hack to allow handleBelief to pass back an action
+		Action[] last = new Action[1];
+		// convert each percept to a belief and handle it
+		for (Percept percept: getAllPercepts()) handleBelief(perceptToBelief(percept), last, null);
+		// if we got a (valid) previous action
+		if (last[0] != null && !last[0].getName().equals("unknownAction"))
+			prevActions.add(last[0]);
+	}
+
+	private void handleMessages()
+	{
+		for (Message message: getMessages())
+		{
+			if (!(message.value instanceof LogicBelief))
+			{
+				// XXX really shouldn't get here
+				System.err.println("Unknown message belief: " + message.value);
+				continue;
+			}
+
+			// handle each belief according to its sender (who must be on our team)
+			handleBelief((LogicBelief)message.value, null, getAgent(message.sender, getTeam()));
+		}
+	}
+
+	// store a belief in whatever member variable makes sense
+	// last passes out a last action, sender is the sender of the belief (if any)
 	private void handleBelief(LogicBelief belief, Action[] last, OtherAgent sender)
 	{
 		List<String> params = belief.getParameters();
@@ -103,7 +166,6 @@ public class RedAgent extends Agent
 					sender.health = Integer.parseInt(params.get(0));
 				break;
 			case "inspectedEntity":
-				// TODO handle team
 				agent = getAgent(params.get(0), params.get(1));
 				agent.team      = params.get(1);
 				agent.role      = params.get(2);
@@ -220,6 +282,8 @@ public class RedAgent extends Agent
 				agent = getAgent(params.get(0), params.get(2));
 				agent.position = params.get(1);
 				agent.team = params.get(2);
+				// TODO possible inaccuracy if we get accurate health from
+				// another agent then overwrite it with a guess
 				if (params.get(3).equals("normal"))
 				{
 					// agent is not disabled
@@ -263,62 +327,6 @@ public class RedAgent extends Agent
 					System.err.println(getName() + " can't handle percept " + belief);
 				else
 					System.err.println(getName() + " can't handle message " + belief);
-		}
-	}
-
-	private LogicBelief perceptToBelief(Percept percept)
-	{
-		List<String> params = new ArrayList<String>();
-		for (Parameter p : percept.getParameters())
-			params.add("" + p);
-		return new LogicBelief(percept.getName(), params);
-	}
-
-	private OtherAgent getAgent(String name, String team)
-	{
-		if (!agents.containsKey(name)) agents.put(name, new OtherAgent(name, team));
-		return agents.get(name);
-	}
-
-	@Override
-	public void handlePercept(Percept percept)
-	{
-		System.err.println("Cannot handle percepts-as-notifications");
-		System.exit(1);
-	}
-
-	@Override
-	public Action step()
-	{
-		handleMessages();
-		handlePercepts();
-		// the wonderful agent framework asks for actions before the simulation has even started
-		if (steps == 0) return new Action("unknownAction");
-
-		return MarsUtil.skipAction();
-	}
-
-	private void handlePercepts()
-	{
-		Action[] last = new Action[1];
-		for (Percept percept: getAllPercepts()) handleBelief(perceptToBelief(percept), last, null);
-		if (last[0] != null && !last[0].getName().equals("unknownAction"))
-			prevActions.add(last[0]);
-	}
-
-	private void handleMessages()
-	{
-		OtherAgent agent;
-
-		for(Message message: getMessages())
-		{
-			if (!(message.value instanceof LogicBelief))
-			{
-				System.err.println("Unknown message belief: " + message.value);
-				continue;
-			}
-
-			handleBelief((LogicBelief)message.value, null, getAgent(message.sender, getTeam()));
 		}
 	}
 

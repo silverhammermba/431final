@@ -79,11 +79,9 @@ public class Graph
 	public Integer total_edges;
 	// nodes (which contain the edges)
 	Map<String, Node> nodes;
-	private final RedAgent agent;
 
-	public Graph(RedAgent a)
+	public Graph()
 	{
-		agent = a;
 		this.total_verts = null;
 		this.total_edges = null;
 		nodes = new HashMap<String, Node>();
@@ -107,16 +105,14 @@ public class Graph
 	{
 		return addEdge(id1, id2, null);
 	}
+
 	// add an edge between nodes named id1 and id2 with given weight
+	// return indicates whether this is new info or not
 	public boolean addEdge(String id1, String id2, Integer weight)
 	{
+		// if its a new edge, or a new edge weight
 		if (!hasEdge(id1, id2) || (weight != null && edgeWeight(id1, id2) == null))
 		{
-			if (weight != null)
-			{
-				LogicBelief belief = new LogicBelief("newEdge", Arrays.asList(id1, id2, String.valueOf(weight)));
-				agent.broadcastBelief(belief);
-			}
 			Node n1 = getNode(id1);
 			Node n2 = getNode(id2);
 			n1.addEdge(n2, weight);
@@ -141,6 +137,7 @@ public class Graph
 		{
 			edges += n.neighbors.size();
 		}
+		// double-counts edges, so divide
 		return total_edges - edges / 2;
 	}
 
@@ -149,6 +146,7 @@ public class Graph
 		getNode(id).visited = true;
 	}
 
+	// check if a node has unsurveyed edges connected
 	public boolean unknownNearby(String id)
 	{
 		for (Edge edge : getNode(id).neighbors.values())
@@ -159,15 +157,19 @@ public class Graph
 		return false;
 	}
 
+	// return the next node to goto--starting from sid--in order to get to a
+	// node you haven't visited yet or a node that has unsurveyed edges
 	public String explore(String sid)
 	{
+		// reset all node predecessors (from previous path-finding attempts
 		for (Node n : nodes.values())
 			n.pred = null;
 
+		// init frontier for Dijkstra's algorithm
 		Set<Node> frontier = new HashSet<Node>();
 
+		// initial condition for path-finding
 		Node start = getNode(sid);
-
 		frontier.add(start);
 		start.distance = 0;
 		start.pred = null;
@@ -185,13 +187,14 @@ public class Graph
 					dist = n.distance;
 				}
 			}
-
+			// and remove it
 			frontier.remove(closest);
 
 			// if the closest node is unexplored, go there
 			// TODO inefficient, should return the whole path
 			if (!closest.visited || unknownNearby(closest.id))
 			{
+				// trace back to find just the first move to make
 				while (closest.pred != start)
 				{
 					closest = closest.pred;
@@ -200,7 +203,7 @@ public class Graph
 				return closest.id;
 			}
 
-			// find new nodes for the frontier
+			// no path found, add new nodes to the frontier
 			for (Edge e : closest.neighbors.values())
 			{
 				// XXX e.weight is not null because we would have returned in that case
@@ -214,17 +217,18 @@ public class Graph
 			}
 		}
 
+		// no unexplored nodes
 		return null;
 	}
 
-	public void nodeValue(String id, int value)
-	{
-		getNode(id).value = value;
-	}
-
+	// get/set the value of a node
 	public Integer nodeValue(String id)
 	{
 		return getNode(id).value;
+	}
+	public void nodeValue(String id, int value)
+	{
+		getNode(id).value = value;
 	}
 
 	@Override
@@ -244,6 +248,7 @@ public class Graph
 		return s;
 	}
 
+	// get node with the given id (possibly creating it first)
 	private Node getNode(String n1)
 	{
 		if (n1 == null)
