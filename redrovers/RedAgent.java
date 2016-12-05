@@ -213,6 +213,7 @@ public abstract class RedAgent extends Agent
 					sender.health = Integer.parseInt(params.get(0));
 				break;
 			case "inspectedEntity":
+				if (params.get(0).equals(getName())) break;
 				agent = getAgent(params.get(0), params.get(1));
 				agent.team      = params.get(1);
 				agent.role      = params.get(2);
@@ -326,6 +327,7 @@ public abstract class RedAgent extends Agent
 				graph.total_verts = Integer.parseInt(params.get(0));
 				break;
 			case "visibleEntity":
+				if (params.get(0).equals(getName())) break;
 				agent = getAgent(params.get(0), params.get(2));
 				agent.position = params.get(1);
 				agent.team = params.get(2);
@@ -398,6 +400,8 @@ public abstract class RedAgent extends Agent
 			for (OtherAgent agent : agents.values())
 				str += agent.toString() + "\n";
 		}
+
+		str += "Graph\n" + graph;
 
 		str += "TEAM STATUS\n";
 		str += "score: " + score + "\n";

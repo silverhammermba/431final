@@ -71,6 +71,13 @@ public class Graph
 			if (!(obj instanceof Node)) return false;
 			return ((Node)obj).id == id;
 		}
+
+		@Override
+		public String toString()
+		{
+			if (value == null) return id;
+			return id + "(" + value + ")";
+		}
 	}
 
 	// an edge just a node and a weight (the other node on the edge is
@@ -84,6 +91,13 @@ public class Graph
 		{
 			this.end = end;
 			this.weight = weight;
+		}
+
+		@Override
+		public String toString()
+		{
+			if (weight == null) return "----" + end;
+			return "--" + weight + "--" + end;
 		}
 	}
 
@@ -323,10 +337,8 @@ public class Graph
 		{
 			for (Edge edge : node.neighbors.values())
 			{
-				if (edge.weight == null)
-					s += node.id + " --> " + edge.end.id + "\n";
-				else
-					s += node.id + " -" + edge.weight + "-> " + edge.end.id + "\n";
+				if (node.id.compareTo(edge.end.id) >= 0) continue;
+				s += "" + node + edge + "\n";
 			}
 		}
 		return s;
