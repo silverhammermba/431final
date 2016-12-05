@@ -17,7 +17,7 @@ import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
-public class RedAgent extends Agent
+public abstract class RedAgent extends Agent
 {
 	private static final int teamSize = 10;
 
@@ -36,6 +36,8 @@ public class RedAgent extends Agent
 	 *  inspectedEntity(id, id, id, id, num, num, num, num, num, num)
 	 *  visibleEntity(id, id, id, id)
 	 */
+	abstract Action think();
+	
 	private Graph graph;
 	/* graph tracks the following percepts:
 	 *  surveyedEdge(id, id, num)
@@ -105,7 +107,9 @@ public class RedAgent extends Agent
 		// the wonderful agent framework asks for actions before the simulation has even started
 		if (steps == 0) return new Action("unknownAction");
 
-		return MarsUtil.skipAction();
+		
+		return think();
+		
 	}
 
 	private void handlePercepts()
