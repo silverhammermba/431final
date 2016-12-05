@@ -80,6 +80,8 @@ public class RedAgent extends Agent
 		for (Percept percept: getAllPercepts()) handlePercept(percept, last);
 		if (last[0] != null && !last[0].getName().equals("unknownAction"))
 			prevActions.add(last[0]);
+		
+		broadcastBelief(new LogicBelief("done"));
 	}
 
 	private void handlePercept(Percept percept, Action[] last)
@@ -98,13 +100,11 @@ public class RedAgent extends Agent
 				break;
 			case "energy":
 				energy = Integer.parseInt(params.get(0));
-				belief = new LogicBelief("energy",new String[]{String.valueOf(energy)}); 
-				broadcastBelief(belief);
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "health":
 				health = Integer.parseInt(params.get(0));
-				belief = new LogicBelief("health",new String[]{String.valueOf(health)}); 
-				broadcastBelief(belief);
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "inspectedEntity":
 				agent = getAgent(params.get(0));
@@ -118,8 +118,7 @@ public class RedAgent extends Agent
 				agent.energy    = Integer.parseInt(params.get(4));
 				agent.maxEnergy = Integer.parseInt(params.get(5));
 				
-				belief = new LogicBelief("",new String[]{String.valueOf(health)}); 
-				broadcastBelief(belief);
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "lastAction":
 				if (last[0] == null)
@@ -150,32 +149,27 @@ public class RedAgent extends Agent
 				break;
 			case "maxEnergy":
 				maxEnergy = Integer.parseInt(params.get(0));
-				belief = new LogicBelief("maxEnergy",new String[]{String.valueOf(maxEnergy)}); 
-				broadcastBelief(belief);
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "maxHealth":
 				maxHealth = Integer.parseInt(params.get(0));
-				belief = new LogicBelief("maxHealth",new String[]{String.valueOf(maxHealth)}); 
-				broadcastBelief(belief);
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "money":
 				money = Integer.parseInt(params.get(0));
-				belief = new LogicBelief("money",new String[]{String.valueOf(money)}); 
-				broadcastBelief(belief);
 				break;
 			case "position":
 				position = params.get(0);
-				if(!graph.nodes.containsValue(position)){
-					belief = new LogicBelief("visited", Arrays.asList(position));
-					this.broadcastBelief(belief);
-				}
+				broadcastBelief(perceptToBelief(percept));
 				graph.visit(position);
 				break;
 			case "probedVertex":
 				graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "role":
 				role = params.get(0);
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "score":
 				score = Integer.parseInt(params.get(0));
@@ -188,9 +182,11 @@ public class RedAgent extends Agent
 				break;
 			case "strength":
 				strength = Integer.parseInt(params.get(0));
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "surveyedEdge":
 				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "vertices":
 				graph.total_verts = Integer.parseInt(params.get(0));
@@ -214,12 +210,15 @@ public class RedAgent extends Agent
 				}
 				else
 						agent.health = 0;
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "visRange":
 				visRange = Integer.parseInt(params.get(0));
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "visibleEdge":
 				graph.addEdge(params.get(0), params.get(1));
+				broadcastBelief(perceptToBelief(percept));
 				break;
 			case "zoneScore":
 				zoneScore = Integer.parseInt(params.get(0));
@@ -256,24 +255,28 @@ public class RedAgent extends Agent
 	@Override
 	public Action step()
 	{
+		handleMessages();
 		updateState();
 		// the wonderful agent framework asks for actions before the simulation has even started
 		if (steps == 0) return new Action("unknownAction");
-
-		handleMessages();
 
 		return MarsUtil.skipAction();
 	}
 
 	private void handleMessages()
 	{
+		
+
 		Collection<Message> messages = getMessages();
+		
 		for(Message message: messages){
 			Belief b = message.value;
 			if(b instanceof LogicBelief){
 				LogicBelief l = (LogicBelief)b;
 				String pred = (l).getPredicate();
+				
 				switch(pred){
+				    
 					case "visited":
 						graph.visit(l.getParameters().get(0));
 						break;
@@ -285,6 +288,11 @@ public class RedAgent extends Agent
 				}
 			}
 		}
+			
+			
+		
+		
+		
 	}
 
 	@Override
