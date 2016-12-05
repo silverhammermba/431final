@@ -176,7 +176,7 @@ public class RedAgent extends Agent
 				strength = Integer.parseInt(params.get(0));
 				break;
 			case "surveyedEdge":
-				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)), "");
+				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
 				break;
 			case "vertices":
 				graph.total_verts = Integer.parseInt(params.get(0));
@@ -243,7 +243,8 @@ public class RedAgent extends Agent
 		return MarsUtil.skipAction();
 	}
 
-	private void handleMessages(){
+	private void handleMessages()
+	{
 		Collection<Message> messages = getMessages();
 		for(Message message: messages){
 			Belief b = message.value;
@@ -255,7 +256,7 @@ public class RedAgent extends Agent
 						graph.visit(l.getParameters().get(0));
 						break;
 					case "newEdge":
-						graph.addEdge(l.getParameters().get(0), l.getParameters().get(1), Integer.parseInt(l.getParameters().get(2)), message.sender);
+						graph.addEdge(l.getParameters().get(0), l.getParameters().get(1), Integer.parseInt(l.getParameters().get(2)));
 						break;
 					default:
 						System.err.println(getName() + " can't handle message " + message);
