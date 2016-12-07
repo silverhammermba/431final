@@ -224,6 +224,9 @@ public class Graph
 
 	/**
 	 * Check if a node is visited
+	 *
+	 * @param id the node's ID
+	 * @return true if the node has the visited flag
 	 */
 	public boolean visited(String id)
 	{
@@ -247,27 +250,37 @@ public class Graph
 	}
 
 	/**
-	 * Get a node to goto in order to explore the graph.
+	 * Get a path to follow in order to survey the graph
 	 *
 	 * @param sid the ID of the node the agent is at
-	 * @return the ID of the node to goto. Repeatedly using this method for
-	 *         gotos will eventually get the agent to a node that has not been
-	 *         visited or has edges with unknown weights.
+	 * @return the path, see {@link #shortestPath(String,Function)}
 	 */
 	public LinkedList<String> explore(String sid)
 	{
 		return shortestPath(sid, (id) -> !visited(id) || unknownNearby(id));
 	}
 
+	/**
+	 * Get the shortest path from node sid to node eid
+	 *
+	 * @param sid the ID of the node the agent is at
+	 * @param eid the ID of the node to path to
+	 * @return the path, see {@link #shortestPath(String,Function)}
+	 */
 	public LinkedList<String> shortestPath(String sid, String eid)
 	{
 		return shortestPath(sid, (id) -> id.equals(eid));
 	}
 
 	/**
-	 * Get a node to goto in order to explore the graph.
+	 * Get the shortest path to any node satisfying some condition.
 	 *
 	 * @param sid the ID of the node the agent is at
+	 * @param destCheck a function taking a node ID and returning true if that
+	 *                  node is an acceptable destination
+	 * @return The path as a list of node IDs. goto each node in order. If
+	 *         sid satisfies the condition, the list will be empty. If there
+	 *         are no nodes satisfying the condition, returns null.
 	 */
 	public LinkedList<String> shortestPath(String sid, Function<String, Boolean> destCheck)
 	{
