@@ -33,16 +33,23 @@ public class Explorer extends RedAgent
 
 	Action think()
 	{
+		
+		//probe
+		
 		if (!role.equals("Explorer"))
 		{
 			System.err.println("wrong class for agent!");
 			return MarsUtil.skipAction();
 		}
+		
 
+		
 		List<String> nodes;
-		for (int i = 0; i < visRange; ++i)
+		for (int i = 0; i <= visRange; ++i)
 		{
-			nodes = graph.nodesAtRange(position,visRange);
+			nodes = graph.nodesAtRange(position,i);
+			
+		
 			for (String id : nodes)
 			{
 				if (graph.nodeValue(id) == null)
@@ -54,7 +61,39 @@ public class Explorer extends RedAgent
 				}
 			}
 		}
+		
+		
+		
+		//inspect
+		/*
+		if (!role.equals("Inspector"))
+		{
+			System.err.println("wrong class for agent!");
+			return MarsUtil.skipAction();
+		}
+		
 
+		
+		List<String> nodes;
+		for (int i = 0; i < visRange; ++i)
+		{
+			nodes = graph.nodesAtRange(position,visRange);
+			for (String id : nodes)
+			{
+				if (graph.nodeValue(id) == null)
+				{
+					if (energy < 1 + i)
+						return MarsUtil.rechargeAction();
+
+					return MarsUtil.inspectAction(id);
+				}
+			}
+		}
+		*/
+		
+		
+
+		
 		return MarsUtil.skipAction();
 
 	}
