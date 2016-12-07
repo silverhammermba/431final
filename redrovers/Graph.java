@@ -1,8 +1,10 @@
 package redrovers;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -221,6 +223,14 @@ public class Graph
 	}
 
 	/**
+	 * Check if a node is visited
+	 */
+	public boolean visited(String id)
+	{
+		return getNode(id).visited;
+	}
+
+	/**
 	 * Check if a node has edges with unknown weights.
 	 *
 	 * @param id the node's ID
@@ -244,9 +254,24 @@ public class Graph
 	 *         gotos will eventually get the agent to a node that has not been
 	 *         visited or has edges with unknown weights.
 	 */
-	public String explore(String sid)
+	public LinkedList<String> explore(String sid)
 	{
-		// reset all node predecessors (from previous path-finding attempts
+		return shortestPath(sid, (id) -> !visited(id) || unknownNearby(id));
+	}
+
+	public LinkedList<String> shortestPath(String sid, String eid)
+	{
+		return shortestPath(sid, (id) -> id.equals(eid));
+	}
+
+	/**
+	 * Get a node to goto in order to explore the graph.
+	 *
+	 * @param sid the ID of the node the agent is at
+	 */
+	public LinkedList<String> shortestPath(String sid, Function<String, Boolean> destCheck)
+	{
+		// reset all node predecessors (from previous path-finding attempts)
 		for (Node n : nodes.values())
 			n.pred = null;
 
@@ -275,25 +300,28 @@ public class Graph
 			// and remove it
 			frontier.remove(closest);
 
-			// if the closest node is unexplored, go there
-			// TODO inefficient, should return the whole path
-			if (!closest.visited || unknownNearby(closest.id))
+			if (destCheck.apply(closest.id))
 			{
+				LinkedList<String> path = new LinkedList<String>();
+				if (closest == start) return path;
+				path.push(closest.id);
+
 				// trace back to find just the first move to make
 				while (closest.pred != start)
 				{
 					closest = closest.pred;
+					path.push(closest.id);
 				}
 
-				return closest.id;
+				return path;
 			}
 
 			// no path found, add new nodes to the frontier
 			for (Edge e : closest.neighbors.values())
 			{
-				// XXX e.weight is not null because we would have returned in that case
 				// check if we have a new shortest path to the node
-				if (e.end.pred == null || closest.distance + e.weight < e.end.distance)
+				// TODO assume some maximum edge weight if unknown?
+				if (e.weight != null && (e.end.pred == null || closest.distance + e.weight < e.end.distance))
 				{
 					e.end.pred = closest;
 					e.end.distance = closest.distance + e.weight;
@@ -302,7 +330,7 @@ public class Graph
 			}
 		}
 
-		// no unexplored nodes
+		// no nodes
 		return null;
 	}
 
@@ -395,6 +423,8 @@ public class Graph
 		List<String> nodes = new ArrayList<String>();
 		for (Node n : next)
 			nodes.add(n.id);
+		
+		
 		return nodes;
 	}
 }
