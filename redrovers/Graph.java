@@ -338,12 +338,12 @@ public class Graph
 				{
 					e.end.pred = closest;
 					e.end.distance = closest.distance + e.weight;
-					if (!frontier.contains(e.end)) frontier.add(e.end);
+					frontier.add(e.end);
 				}
 			}
 		}
 
-		// no nodes
+		// no reachable destinations
 		return null;
 	}
 
@@ -437,5 +437,58 @@ public class Graph
 		for (Node n : next)
 			nodes.add(n.id);
 		return nodes;
+	}
+
+	// find range (minimum number of edges) between sid and eid
+	// TODO shame that this is so similar to shortestPath, don't know how to DRY it
+	public Integer range(String sid, String eid)
+	{
+		// reset all node predecessors (from previous path-finding attempts)
+		for (Node n : nodes.values())
+			n.pred = null;
+
+		// init frontier for Dijkstra's algorithm
+		Set<Node> frontier = new HashSet<Node>();
+
+		// initial condition for path-finding
+		Node start = getNode(sid);
+		frontier.add(start);
+		start.distance = 0;
+		start.pred = null;
+
+		while (!frontier.isEmpty())
+		{
+			// find closest node in frontier
+			Node closest = null;
+			int dist = 0;
+			for (Node n : frontier)
+			{
+				if (closest == null || n.distance < dist)
+				{
+					closest = n;
+					dist = n.distance;
+				}
+			}
+			// and remove it
+			frontier.remove(closest);
+
+			// done
+			if (closest.id.equals(eid)) return closest.distance;
+
+			// no path found, add new nodes to the frontier
+			for (Edge e : closest.neighbors.values())
+			{
+				// check if we have a new shortest path to the node
+				if (e.end.pred == null || closest.distance + 1 < e.end.distance)
+				{
+					e.end.pred = closest;
+					e.end.distance = closest.distance + 1;
+					frontier.add(e.end);
+				}
+			}
+		}
+
+		// no path to eid
+		return null;
 	}
 }
