@@ -395,6 +395,8 @@ public class Graph
 		List<String> nodes = new ArrayList<String>();
 		for (Node n : next)
 			nodes.add(n.id);
+		
+		
 		return nodes;
 	}
 }
