@@ -1,5 +1,6 @@
 package redrovers;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -7,8 +8,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import apltk.interpreter.data.LogicBelief;
+
+/**
+ * This class defines a collection of nodes and edges suitable for storing the
+ * map of Mars.
+ *
+ * <p>The internal representations of nodes and edges are private since agents
+ * should not rely on them. Instead define public methods for accessing
+ * node/edge atrributes through the Graph object e.g. {@link nodesAtRange}.
+ */
 public class Graph
 {
+	/* A node has an id, value, and a map from IDs to edges. Also a visisted
+	 * flag but that's a bit of hack that we need to think about.
+	 */
 	private class Node
 	{
 		public final String id;
@@ -57,8 +71,17 @@ public class Graph
 			if (!(obj instanceof Node)) return false;
 			return ((Node)obj).id == id;
 		}
+
+		@Override
+		public String toString()
+		{
+			if (value == null) return id;
+			return id + "(" + value + ")";
+		}
 	}
 
+	// an edge just a node and a weight (the other node on the edge is
+	// determined by which node has this edge in its neighbors map).
 	private class Edge
 	{
 		public final Node end;
@@ -69,6 +92,13 @@ public class Graph
 			this.end = end;
 			this.weight = weight;
 		}
+
+		@Override
+		public String toString()
+		{
+			if (weight == null) return "----" + end;
+			return "--" + weight + "--" + end;
+		}
 	}
 
 	// total size of graph
@@ -77,6 +107,9 @@ public class Graph
 	// nodes (which contain the edges)
 	private Map<String, Node> nodes;
 
+	/**
+	 * Create a graph of unknown size with no nodes or edges.
+	 */
 	public Graph()
 	{
 		this.total_verts = null;
@@ -84,27 +117,56 @@ public class Graph
 		nodes = new HashMap<String, Node>();
 	}
 
-	// do we know of an edge between nodes named id1 and id2?
+	/** Indicate whether we know of edge between two nodes.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @return true if both nodes are in the graph and have an edge between
+	 *         them, otherwise false.
+	 */
 	public boolean hasEdge(String id1, String id2)
 	{
 		return nodes.containsKey(id1) && getNode(id1).hasEdge(id2);
 	}
 
-	// get edge weight between nodes named id1 and id2
-	// XXX WE MUST KNOW OF AN EDGE BETWEEN THESE NODES
+	/**
+	 * Get the weight of an edge.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @return the weight of the edge between the two nodes
+	 * @throws NullPointerException if either node does not exist or there is
+	 *         no edge between them. Use {@link hasEdge} first.
+	 */
 	public Integer edgeWeight(String id1, String id2)
 	{
 		return nodes.get(id1).neighbors.get(id2).weight;
 	}
 
-	// add an edge between nodes named id1 and id2 (with unknown weight)
+	/**
+	 * Add an edge between two nodes with an unknown weight.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @return true if this was a new edge (or new nodes)
+	 */
 	public boolean addEdge(String id1, String id2)
 	{
 		return addEdge(id1, id2, null);
 	}
-	// add an edge between nodes named id1 and id2 with given weight
+
+	/**
+	 * Add a edge between two nodes.
+	 *
+	 * @param id1 one node's ID
+	 * @param id2 another node's ID
+	 * @param weight the weight of the edge (null if unknown)
+	 * @return true if this was a new edge, new node, or new weight for an
+	 *         existing edge
+	 */
 	public boolean addEdge(String id1, String id2, Integer weight)
 	{
+		// if its a new edge, or a new edge weight
 		if (!hasEdge(id1, id2) || (weight != null && edgeWeight(id1, id2) == null))
 		{
 			Node n1 = getNode(id1);
@@ -116,12 +178,22 @@ public class Graph
 		return false;
 	}
 
+	/**
+	 * Determine how many vertices are left to discover.
+	 *
+	 * @return the number of undiscovered vertices or null if unknown.
+	 */
 	public Integer numUnknownVerts()
 	{
 		if (total_verts == null) return null;
 		return total_verts - nodes.size();
 	}
 
+	/**
+	 * Determine how many edges are left to discover
+	 *
+	 * @return the number of undiscovered edges or null if unknown.
+	 */
 	public Integer numUnknownEdges()
 	{
 		if (total_edges == null) return null;
@@ -131,14 +203,29 @@ public class Graph
 		{
 			edges += n.neighbors.size();
 		}
+		// double-counts edges, so divide
 		return total_edges - edges / 2;
 	}
 
+	/**
+	 * Flag a node as visited.
+	 *
+	 * <b>TODO</b> this is hacky. We need a better way to figure which nodes
+	 * might have undiscovered edges.
+	 *
+	 * @param id the node's ID
+	 */
 	public void visit(String id)
 	{
 		getNode(id).visited = true;
 	}
 
+	/**
+	 * Check if a node has edges with unknown weights.
+	 *
+	 * @param id the node's ID
+	 * @return true if the node has edges with null weight, else false
+	 */
 	public boolean unknownNearby(String id)
 	{
 		for (Edge edge : getNode(id).neighbors.values())
@@ -149,15 +236,25 @@ public class Graph
 		return false;
 	}
 
+	/**
+	 * Get a node to goto in order to explore the graph.
+	 *
+	 * @param sid the ID of the node the agent is at
+	 * @return the ID of the node to goto. Repeatedly using this method for
+	 *         gotos will eventually get the agent to a node that has not been
+	 *         visited or has edges with unknown weights.
+	 */
 	public String explore(String sid)
 	{
+		// reset all node predecessors (from previous path-finding attempts
 		for (Node n : nodes.values())
 			n.pred = null;
 
+		// init frontier for Dijkstra's algorithm
 		Set<Node> frontier = new HashSet<Node>();
 
+		// initial condition for path-finding
 		Node start = getNode(sid);
-
 		frontier.add(start);
 		start.distance = 0;
 		start.pred = null;
@@ -175,13 +272,14 @@ public class Graph
 					dist = n.distance;
 				}
 			}
-
+			// and remove it
 			frontier.remove(closest);
 
 			// if the closest node is unexplored, go there
 			// TODO inefficient, should return the whole path
 			if (!closest.visited || unknownNearby(closest.id))
 			{
+				// trace back to find just the first move to make
 				while (closest.pred != start)
 				{
 					closest = closest.pred;
@@ -190,7 +288,7 @@ public class Graph
 				return closest.id;
 			}
 
-			// find new nodes for the frontier
+			// no path found, add new nodes to the frontier
 			for (Edge e : closest.neighbors.values())
 			{
 				// XXX e.weight is not null because we would have returned in that case
@@ -204,36 +302,49 @@ public class Graph
 			}
 		}
 
+		// no unexplored nodes
 		return null;
 	}
 
-	public void nodeValue(String id, int value)
-	{
-		getNode(id).value = value;
-	}
-
+	/**
+	 * Get the value of a node.
+	 *
+	 * @param id the node's ID
+	 * @return the value of the node or null if unknown
+	 */
 	public Integer nodeValue(String id)
 	{
 		return getNode(id).value;
 	}
 
+	/**
+	 * Set the value of a node.
+	 *
+	 * @param id the node's ID
+	 * @param value the new value
+	 */
+	public void nodeValue(String id, int value)
+	{
+		getNode(id).value = value;
+	}
+
 	@Override
 	public String toString()
 	{
+		// TODO double-prints edges
 		String s = "";
 		for (Node node : nodes.values())
 		{
 			for (Edge edge : node.neighbors.values())
 			{
-				if (edge.weight == null)
-					s += node.id + " --> " + edge.end.id + "\n";
-				else
-					s += node.id + " -" + edge.weight + "-> " + edge.end.id + "\n";
+				if (node.id.compareTo(edge.end.id) >= 0) continue;
+				s += "" + node + edge + "\n";
 			}
 		}
 		return s;
 	}
 
+	// get node with the given id (possibly creating it first)
 	private Node getNode(String n1)
 	{
 		if (n1 == null)
@@ -246,5 +357,44 @@ public class Graph
 		if (nodes.containsKey(n1)) return nodes.get(n1);
 		nodes.put(n1, new Node(n1));
 		return nodes.get(n1);
+	}
+
+	/**
+	 * Get nodes that are a certain number of hops away from a node.
+	 *
+	 * @param id the starting node's ID
+	 * @param range the number of hops away from that node (number of edges)
+	 * @return a list of node IDs that are <i>exactly</i> that many hops from the starting node
+	 */
+	public List<String> nodesAtRange(String id, int range)
+	{
+		Set<Node> visited = new HashSet<Node>();
+		Set<Node> next = new HashSet<Node>();
+		next.add(getNode(id));
+
+		int r = 0;
+
+		while (r < range && !next.isEmpty())
+		{
+			for (Node n : next)
+				visited.add(n);
+			next.clear();
+
+			for (Node n : visited)
+			{
+				for (Edge e : n.neighbors.values())
+				{
+					if (!visited.contains(e.end) && !next.contains(e.end))
+						next.add(e.end);
+				}
+			}
+
+			++r;
+		}
+
+		List<String> nodes = new ArrayList<String>();
+		for (Node n : next)
+			nodes.add(n.id);
+		return nodes;
 	}
 }

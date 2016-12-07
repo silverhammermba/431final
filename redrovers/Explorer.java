@@ -17,34 +17,45 @@ import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
+
+/**
+ * An agent that probes nodes that are in range.
+ *
+ * Probes the closest nodes first, recharges when it doesn't have enough energy
+ * to probe.
+ */
 public class Explorer extends RedAgent
 {
-	public Explorer(String name, String team){
+	public Explorer(String name, String team)
+	{
 		super(name,team);
 	}
-	
-	Action think(){
-		
-		if(!role.equals("Explorer")){
+
+	Action think()
+	{
+		if (!role.equals("Explorer"))
+		{
 			System.err.println("wrong class for agent!");
-			return MarsUtil.skipAction();	
+			return MarsUtil.skipAction();
 		}
-		
-		
+
 		List<String> nodes;
-		for(int i = 0; i < visRange; ++i){
+		for (int i = 0; i < visRange; ++i)
+		{
 			nodes = graph.nodesAtRange(position,visRange);
-			for(String id:nodes){
-				if(graph.nodeValue(id) == null){
-					if(energy < 1 + i){
+			for (String id : nodes)
+			{
+				if (graph.nodeValue(id) == null)
+				{
+					if (energy < 1 + i)
 						return MarsUtil.rechargeAction();
-					}
+
 					return MarsUtil.probeAction(id);
 				}
 			}
 		}
-		
+
 		return MarsUtil.skipAction();
-		
+
 	}
 }
