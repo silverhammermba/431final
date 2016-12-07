@@ -81,6 +81,9 @@ public class Repairer extends RedAgent
 		List<OtherAgent> damaged = new ArrayList<OtherAgent>();
 		List<OtherAgent> priority = new ArrayList<OtherAgent>();
 		for(OtherAgent agent : agents.values()){
+			if(agent.role == null){
+				continue;
+			}
 			if(agent.team.equals(this.getTeam())){
 				if((agent.role.equals("Explorer") || agent.role.equals("Repairer")) && agent.health < agent.maxHealth){
 					System.out.println("This agent needs to be repaired " + agent.name);
