@@ -48,7 +48,7 @@ public class Repairer extends RedAgent
 			checkGoal();
 			
 		}
-		if(goalAgent != null){
+		if(goalAgent != null && goalAgent.role != null){
 			System.out.println("in goal method");
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
@@ -62,6 +62,7 @@ public class Repairer extends RedAgent
 				}
 			}
 			else{
+				path = graph.shortestPath(position, goalAgent.position);
 				String next = path.removeFirst();
 				int weight = graph.edgeWeight(position, next);
 				if(energy < weight){
