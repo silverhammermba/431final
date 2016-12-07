@@ -49,6 +49,7 @@ public class Repairer extends RedAgent
 			
 		}
 		if(goalAgent != null){
+			System.out.println("in goal method");
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
@@ -61,8 +62,13 @@ public class Repairer extends RedAgent
 				}
 			}
 			else{
-				//return graph.goto(goalAgent.position);
-				return MarsUtil.skipAction();
+				String next = path.removeFirst();
+				int weight = graph.edgeWeight(position, next);
+				if(energy < weight){
+					path.addFirst(next);
+					return MarsUtil.rechargeAction();
+				}
+				return MarsUtil.gotoAction(next);
 			}
 		}
 		
@@ -153,7 +159,7 @@ public class Repairer extends RedAgent
 			goalAgent = goal;
 			System.out.println("my goal is this agent: " + goalAgent);
 		}
-		else{
+		if(path == null){
 			path = graph.explore(position);
 			goalAgent = null;
 		}
