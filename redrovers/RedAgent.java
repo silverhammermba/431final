@@ -413,4 +413,153 @@ public abstract class RedAgent extends Agent
 
 		return str;
 	}
+
+	protected Action gotoGreedy(String node_id)
+	{
+		if (!graph.hasEdge(position, node_id))
+		{
+			System.err.println(getName() + " attempted an invalid goto: " + position + " -> " + node_id);
+			return MarsUtil.gotoAction(node_id);
+		}
+
+		Integer weight = graph.edgeWeight(position, node_id);
+		if (weight == null) return surveyGreedy();
+
+		if (energy < weight) return MarsUtil.rechargeAction();
+
+		return MarsUtil.gotoAction(node_id);
+	}
+
+	protected Action probeGreedy()
+	{
+		if (energy < 1) return MarsUtil.rechargeAction();
+		return MarsUtil.probeAction();
+	}
+
+	protected Action probeGreedy(String node_id)
+	{
+		Integer range = graph.range(position, node_id);
+		if (range == null || range > visRange)
+		{
+			System.err.println(getName() + " attempted an invalid probe: " + node_id + " (from " + position + ")");
+			return MarsUtil.probeAction(node_id);
+		}
+
+		if (energy < range + 1) return MarsUtil.rechargeAction();
+		return MarsUtil.probeAction(node_id);
+	}
+
+	protected Action surveyGreedy()
+	{
+		if (energy < 1) return MarsUtil.rechargeAction();
+		return MarsUtil.surveyAction();
+	}
+
+	protected Action inspectGreedy()
+	{
+		if (energy < 2) return MarsUtil.rechargeAction();
+		return MarsUtil.inspectAction();
+	}
+
+	protected Action inspectGreedy(String id)
+	{
+		// if we don't know the agent or its position, that's bad
+		if (!agents.containsKey(id) || agents.get(id).position == null)
+		{
+			System.err.println(getName() + " attempted an invalid inspect (unknown agent/range): " + id);
+			return MarsUtil.inspectAction(id);
+		}
+
+		Integer range = graph.range(position, agents.get(id).position);
+		if (range == null || range > visRange)
+		{
+			System.err.println(getName() + " attempted an invalid inspect (out of range): " + id + " (from " + position + ")");
+			return MarsUtil.inspectAction(id);
+		}
+
+		if (energy < range + 2) return MarsUtil.rechargeAction();
+		return MarsUtil.inspectAction(id);
+	}
+
+	protected Action parryGreedy()
+	{
+		if (energy < 2) return MarsUtil.rechargeAction();
+		return MarsUtil.parryAction();
+	}
+
+	protected Action attackGreedy(String id)
+	{
+		// if we don't know the agent or its position, that's bad
+		if (!agents.containsKey(id) || agents.get(id).position == null)
+		{
+			System.err.println(getName() + " attempted an invalid attack (unknown agent/range): " + id);
+			return MarsUtil.attackAction(id);
+		}
+		// same team is bad
+		if (agents.get(id).team.equals(getTeam()))
+		{
+			System.err.println(getName() + " attempted an invalid attack (same team): " + id);
+			return MarsUtil.attackAction(id);
+		}
+
+		Integer range = graph.range(position, agents.get(id).position);
+		if (range == null || range > visRange)
+		{
+			System.err.println(getName() + " attempted an invalid attack (out of range): " + id + " (from " + position + ")");
+			return MarsUtil.attackAction(id);
+		}
+
+		if (energy < range + 2) return MarsUtil.rechargeAction();
+		return MarsUtil.attackAction(id);
+	}
+
+	protected Action buyGreedy(String item)
+	{
+		if (money < 2)
+		{
+			System.err.println(getName() + " attempted an invalid buy (not enough money): " + item);
+			return MarsUtil.buyAction(item);
+		}
+
+		switch (item)
+		{
+			case "battery":
+			case "sensor":
+			case "shield":
+			case "sabotageDevice":
+				break;
+			default:
+				System.err.println(getName() + " attempted an invalid buy: " + item);
+				return MarsUtil.buyAction(item);
+		}
+
+		if (energy < 2) return MarsUtil.rechargeAction();
+		return MarsUtil.buyAction(item);
+	}
+
+	protected Action repairGreedy(String id)
+	{
+		// if we don't know the agent or its position, that's bad
+		if (!agents.containsKey(id) || agents.get(id).position == null)
+		{
+			System.err.println(getName() + " attempted an invalid repair (unknown agent/range): " + id);
+			return MarsUtil.repairAction(id);
+		}
+		// other team is bad
+		if (!agents.get(id).team.equals(getTeam()))
+		{
+			System.err.println(getName() + " attempted an invalid repair (wrong team): " + id);
+			return MarsUtil.repairAction(id);
+		}
+
+		Integer range = graph.range(position, agents.get(id).position);
+		if (range == null || range > visRange)
+		{
+			System.err.println(getName() + " attempted an invalid repair (out of range): " + id + " (from " + position + ")");
+			return MarsUtil.repairAction(id);
+		}
+
+		if (energy < range + 2) return MarsUtil.rechargeAction();
+		return MarsUtil.repairAction(id);
+	}
 }
