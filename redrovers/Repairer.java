@@ -59,11 +59,8 @@ public class Repairer extends RedAgent
 
 	Action think()
 	{
-		if (!role.equals("Repairer"))
-		{
-			System.err.println("wrong class for agent!");
-			return MarsUtil.skipAction();
-		}
+		if (wrongRole()) return MarsUtil.skipAction();
+
 		if(energy == 0){
 			return MarsUtil.rechargeAction();
 		}
@@ -223,6 +220,7 @@ public class Repairer extends RedAgent
 			path = null;
 			return MarsUtil.surveyAction();
 		}
-		else{return MarsUtil.skipAction();}
+
+		return MarsUtil.skipAction();
 	}
 }

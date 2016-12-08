@@ -58,11 +58,7 @@ public class Saboteur extends RedAgent
 	
 	Action think()
 	{
-		if (!role.equals("Saboteur"))
-		{
-			System.err.println("wrong class for agent!");
-			return MarsUtil.skipAction();
-		}
+		if (wrongRole()) return MarsUtil.skipAction();
 
 		if(energy == 0){
 			return MarsUtil.rechargeAction();
@@ -214,6 +210,7 @@ public class Saboteur extends RedAgent
 			path = null;
 			return MarsUtil.surveyAction();
 		}
-		else{return MarsUtil.skipAction();}
+
+		return MarsUtil.skipAction();
 	}
 }
