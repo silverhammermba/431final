@@ -30,7 +30,8 @@ public class Graph
 		public final String id;
 		public final Map<String, Edge> neighbors;
 		public Integer value;
-		public boolean visited;
+		// indicates whether there may be more edges attached to this node
+		public boolean unknownEdges;
 		// for path finding
 		public int distance;
 		public Node pred;
@@ -40,7 +41,7 @@ public class Graph
 			this.id = id;
 			neighbors = new HashMap<String, Edge>();
 			value = null;
-			visited = false;
+			unknownEdges = true;
 		}
 
 		public void addEdge(Node end, Integer weight)
@@ -217,9 +218,9 @@ public class Graph
 	 *
 	 * @param id the node's ID
 	 */
-	public void visit(String id)
+	public void noMoreEdges(String id)
 	{
-		getNode(id).visited = true;
+		getNode(id).unknownEdges = false;
 	}
 
 	/**
@@ -228,9 +229,9 @@ public class Graph
 	 * @param id the node's ID
 	 * @return true if the node has the visited flag
 	 */
-	public boolean visited(String id)
+	public boolean unknownEdges(String id)
 	{
-		return getNode(id).visited;
+		return getNode(id).unknownEdges;
 	}
 
 	/**
@@ -239,7 +240,7 @@ public class Graph
 	 * @param id the node's ID
 	 * @return true if the node has edges with null weight, else false
 	 */
-	public boolean unknownNearby(String id)
+	public boolean unsurveyedEdges(String id)
 	{
 		for (Edge edge : getNode(id).neighbors.values())
 		{
@@ -257,7 +258,7 @@ public class Graph
 	 */
 	public LinkedList<String> explore(String sid)
 	{
-		return shortestPath(sid, (id) -> !visited(id) || unknownNearby(id));
+		return shortestPath(sid, (id) -> unknownEdges(id) || unsurveyedEdges(id));
 	}
 
 	/**

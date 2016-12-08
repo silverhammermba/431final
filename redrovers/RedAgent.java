@@ -277,14 +277,16 @@ public abstract class RedAgent extends Agent
 				money = Integer.parseInt(params.get(0));
 				break;
 			case "position":
+				String pos = params.get(0);
+				// we will at least get visibleEdge beliefs for this pos
+				graph.noMoreEdges(pos);
 				if (sender == null)
 				{
-					position = params.get(0);
-					graph.visit(position);
+					position = pos;
 					broadcastBelief(belief);
 				}
 				else
-					sender.position = params.get(0);
+					sender.position = pos;
 				break;
 			case "probedVertex":
 				graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
@@ -319,6 +321,14 @@ public abstract class RedAgent extends Agent
 					sender.strength = Integer.parseInt(params.get(0));
 				break;
 			case "surveyedEdge":
+				/* TODO if we survey at range greater than 1, then we should be
+				 * able to call graph.noMoreEdges on neighboring nodes. But we
+				 * aren't directly told what the effective range of the survey
+				 * was and it turns out to be pretty hard to calculate from the
+				 * resulting surveyedEdge percepts (especially since agents in
+				 * the same zone share percepts). So for now just ignore it,
+				 * which does waste some time.
+				 */
 				graph.addEdge(params.get(0), params.get(1), Integer.parseInt(params.get(2)));
 				if (sender == null)
 					broadcastBelief(belief);
@@ -331,23 +341,9 @@ public abstract class RedAgent extends Agent
 				agent = getAgent(params.get(0), params.get(2));
 				agent.position = params.get(1);
 				agent.team = params.get(2);
-				// TODO possible inaccuracy if we get accurate health from
-				// another agent then overwrite it with a guess
-				if (params.get(3).equals("normal"))
-				{
-					// agent is not disabled
-					if (agent.maxHealth == null)
-						agent.health = 1; // don't know max health, choose some arbitrary value
-					else // XXX assume the worst
-					{
-						if (agent.team.equals(getTeam()))
-							agent.health = 1;
-						else
-							agent.health = agent.maxHealth;
-					}
-				}
-				else
-						agent.health = 0;
+				// TODO maybe we can do something smart in the "normal" case...
+				if (params.get(3).equals("disabled"))
+					agent.health = 0;
 				if (sender == null)
 					broadcastBelief(belief);
 				break;
