@@ -72,6 +72,11 @@ public class Saboteur extends RedAgent
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
+			if (path == null)
+			{
+				goalAgent = null;
+				return MarsUtil.rechargeAction();
+			}
 			if(path.size() == 0){
 				if(energy < 2){
 					return MarsUtil.rechargeAction();

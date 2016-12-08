@@ -351,9 +351,10 @@ public abstract class RedAgent extends Agent
 				agent = getAgent(params.get(0), params.get(2));
 				agent.position = params.get(1);
 				agent.team = params.get(2);
-				// TODO maybe we can do something smart in the "normal" case...
 				if (params.get(3).equals("disabled"))
 					agent.health = 0;
+				else if (agent.health == 0)
+					agent.health = null;
 				if (sender == null)
 					broadcastBelief(belief);
 				break;
