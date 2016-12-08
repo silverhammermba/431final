@@ -84,6 +84,7 @@ public class Saboteur extends RedAgent
 				else {
 					path = null;
 					String name = goalAgent.name;
+					// TODO somehow we can get here even when we know goalAgent has 0 health
 					goalAgent = null;
 					return MarsUtil.attackAction(name);
 				}
@@ -206,8 +207,10 @@ public class Saboteur extends RedAgent
 			}
 			else {
 				path = null;
+				System.out.println("Attacking " + goalAgent);
 				String name = goalAgent.name;
 				goalAgent = null;
+				// TODO somehow we can get here even when we know goalAgent has 0 health
 				return MarsUtil.attackAction(name);
 			}
 		}

@@ -124,11 +124,11 @@ public class Repairer extends RedAgent
 					System.out.println("This agent needs to be repaired " + agent.name);
 					priority.add(agent);
 				}
-				else if(agent.health == 0){
+				else if(agent.health != null && agent.health == 0){
 					System.out.println("This agent needs to be repaired " + agent.name);
 					disabled.add(agent);
 				}
-				else if(agent.health < agent.maxHealth){
+				else if(agent.knownDamaged()){
 					System.out.println("This agent needs to be repaired " + agent.name);
 					damaged.add(agent);
 				}
@@ -191,7 +191,7 @@ public class Repairer extends RedAgent
 		if(goalAgent == null){
 			path = graph.explore(position);
 			goalAgent = null;
-			System.out.println("path size is: " + path.size());
+			if (path != null) System.out.println("path size is: " + path.size());
 		}
 		if(path != null && path.size() != 0){
 			String next = path.removeFirst();
@@ -216,7 +216,7 @@ public class Repairer extends RedAgent
 				return MarsUtil.repairAction(name);
 			}
 		}
-		else if(goalAgent == null && path.size() == 0){
+		else if(goalAgent == null && (path == null || path.size() == 0)){
 			path = null;
 			return MarsUtil.surveyAction();
 		}

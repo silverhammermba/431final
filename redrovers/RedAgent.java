@@ -353,8 +353,8 @@ public abstract class RedAgent extends Agent
 				agent.team = params.get(2);
 				if (params.get(3).equals("disabled"))
 					agent.health = 0;
-				else if (agent.health == 0)
-					agent.health = null;
+				else if (agent.health != null && agent.health == 0)
+					agent.health = agent.maxHealth;
 				if (sender == null)
 					broadcastBelief(belief);
 				break;
