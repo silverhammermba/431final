@@ -2,6 +2,7 @@ package redrovers;
 import eis.iilang.Action;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import massim.javaagents.Agent;
@@ -51,7 +52,7 @@ public class Inspector extends RedAgent
 		if (targets.isEmpty())
 		{
 			// TODO really should be hunting the map for agents, but this is close
-			LinkedList<String> path = graph.explore(position);
+			path = graph.explore(position);
 
 			if (path == null)
 			{
@@ -59,17 +60,24 @@ public class Inspector extends RedAgent
 				List<String> nodes = graph.nodesAtRange(position, 1);
 				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 			}
-			if (path.isEmpty()) return surveyGreed();
+			if (path.isEmpty()) return surveyGreedy();
 			return gotoGreedy(path.pop());
 		}
 
-		 = graph.shortestPath(position, (id) -> targets.contains(id));
+		path = graph.shortestPath(position, (id) -> targets.contains(id));
 
 		// no path to any un-inspected agent
 		if (path == null)
 		{
+			// TODO we really should be hunting
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 		}
-
-		return MarsUtil.skipAction();
+		if (path.isEmpty())
+		{
+			System.err.println("Somehow already at un-inspected agent!?");
+			return inspectGreedy();
+		}
+		return gotoGreedy(path.pop());
 	}
 }
