@@ -76,7 +76,7 @@ public class Explorer extends RedAgent
 				for (Map.Entry<String, OtherAgent> agentEntry : agents.entrySet()){
 					//if there is another explorer at same node, random move
 					OtherAgent agent = agentEntry.getValue();
-					if(agent.position.equals(position) && agent.role.equals(role)){
+					if (getTeam().equals(agent.team) && position.equals(agent.position) && role.equals(agent.role)){
 						//who has more energy go randomly 
 						if(agent.energy <= energy){
 							Random random = new Random();
