@@ -67,6 +67,7 @@ public class Repairer extends RedAgent
 		if(energy == 0){
 			return MarsUtil.rechargeAction();
 		}
+
 		if(goalAgent != null){
 			System.out.println("my goal is this agent: " + goalAgent);
 			checkGoal();
@@ -77,12 +78,15 @@ public class Repairer extends RedAgent
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
-			if(pos == position){
+			if(path.size() == 0){
 				if(energy < 3){
 					return MarsUtil.rechargeAction();
 				}
 				else {
-					return MarsUtil.repairAction(goalAgent.name);
+					path = null;
+					String name = goalAgent.name;
+					goalAgent = null;
+					return MarsUtil.repairAction(name);
 				}
 			}
 			else{
@@ -105,6 +109,9 @@ public class Repairer extends RedAgent
 		if(health == goalAgent.maxHealth){
 			goalAgent = null;
 			path = null;
+		}
+		else{
+			path = graph.shortestPath(position, goalAgent.position);
 		}
 	}
 	Action findGoal(){
@@ -184,9 +191,10 @@ public class Repairer extends RedAgent
 			goalAgent = goal;
 			System.out.println("my goal is this agent: " + goalAgent);
 		}
-		if(path == null){
+		if(goalAgent == null){
 			path = graph.explore(position);
 			goalAgent = null;
+			System.out.println("path size is: " + path.size());
 		}
 		if(path != null && path.size() != 0){
 			String next = path.removeFirst();
@@ -195,6 +203,9 @@ public class Repairer extends RedAgent
 				path.addFirst(next);
 				return MarsUtil.rechargeAction();
 			}
+			if(path.size() == 0){
+				path = null;
+			}
 			return MarsUtil.gotoAction(next);
 		}
 		else if(goalAgent != null && path.size() == 0){
@@ -202,10 +213,16 @@ public class Repairer extends RedAgent
 				return MarsUtil.rechargeAction();
 			}
 			else {
-				return MarsUtil.repairAction(goalAgent.name);
+				path = null;
+				String name = goalAgent.name;
+				goalAgent = null;
+				return MarsUtil.repairAction(name);
 			}
 		}
-		
-		return MarsUtil.surveyAction();
+		else if(goalAgent == null && path.size() == 0){
+			path = null;
+			return MarsUtil.surveyAction();
+		}
+		else{return MarsUtil.skipAction();}
 	}
 }
