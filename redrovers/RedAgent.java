@@ -17,6 +17,8 @@ import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
+
+
 /**
  * This class defines a (slightly) higher-level API on top of the Agent class.
  *
@@ -383,6 +385,7 @@ public abstract class RedAgent extends Agent
 		}
 	}
 
+
 	@Override
 	public String toString()
 	{
@@ -395,8 +398,10 @@ public abstract class RedAgent extends Agent
 		str += "pos " + position + "\n";
 		if (!prevActions.isEmpty())
 		{
+
 			str += prevActions.get(prevActions.size() - 1) + "\n";
 		}
+
 
 		if (!agents.isEmpty())
 		{
