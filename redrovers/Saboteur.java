@@ -69,8 +69,6 @@ public class Saboteur extends RedAgent
 			checkGoal();
 		}
 		if(goalAgent != null){
-			int health = goalAgent.health;
-			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
 			if(path.size() == 0){
 				if(energy < 2){
@@ -83,7 +81,7 @@ public class Saboteur extends RedAgent
 					return MarsUtil.attackAction(name);
 				}
 			}
-			else{
+			else if(goalAgent.position != null){
 				path = graph.shortestPath(position, goalAgent.position);
 				String next = path.removeFirst();
 				int weight = graph.edgeWeight(position, next);
@@ -99,15 +97,18 @@ public class Saboteur extends RedAgent
 	}
 	
 	void checkGoal(){
-		int health = goalAgent.health;
-		if(health == 0){
-			goalAgent = null;
-		}
-		else{
-			path = graph.shortestPath(position, goalAgent.position);
+		if(goalAgent.health != null){
+			int health = goalAgent.health;
+			if(health == 0){
+				goalAgent = null;
+			}
+			else{
+				path = graph.shortestPath(position, goalAgent.position);
+			}
 		}
 	}
 	Action findGoal(){
+		List<OtherAgent> seen = new ArrayList<OtherAgent>();
 		List<OtherAgent> healthy = new ArrayList<OtherAgent>();
 		List<OtherAgent> damaged = new ArrayList<OtherAgent>();
 		List<OtherAgent> priority = new ArrayList<OtherAgent>();
@@ -123,8 +124,29 @@ public class Saboteur extends RedAgent
 					damaged.add(agent);
 				}
 			}
+			if(!agent.team.equals(this.getTeam()) && agent.position != null && agent.position.equals(position) && !agent.knownDamaged()){
+				seen.add(agent);
+			}
 		}
-		if(priority.size() != 0){
+		if(seen.size() != 0){
+			LinkedList<String> closest = new LinkedList<String>();
+			OtherAgent goal = null;
+			for(OtherAgent agent : seen){
+				LinkedList<String> temp = graph.shortestPath(position, agent.position);
+				if(temp != null && closest.size() == 0){
+					closest = graph.shortestPath(position, agent.position);
+					goal = agent;
+				}
+				if(temp != null && temp.size() < closest.size()){
+					closest = temp;
+					goal = agent;
+				}
+			}
+			path = closest;
+			goalAgent = goal;
+			System.out.println("my goal is this agent: " + goalAgent);
+		}
+		if(path == null && priority.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
 			OtherAgent goal = null;
 			for(OtherAgent agent : priority){
