@@ -432,7 +432,11 @@ public abstract class RedAgent extends Agent
 		}
 
 		Integer weight = graph.edgeWeight(position, node_id);
-		if (weight == null) return surveyGreedy();
+		if (weight == null)
+		{
+			if (health == 0) return MarsUtil.gotoAction(node_id);
+			return surveyGreedy();
+		}
 
 		if (energy < weight) return MarsUtil.rechargeAction();
 
@@ -441,12 +445,22 @@ public abstract class RedAgent extends Agent
 
 	protected Action probeGreedy()
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid probe (disabled)");
+			return MarsUtil.probeAction();
+		}
 		if (energy < 1) return MarsUtil.rechargeAction();
 		return MarsUtil.probeAction();
 	}
 
 	protected Action probeGreedy(String node_id)
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid probe (disabled)");
+			return MarsUtil.probeAction(node_id);
+		}
 		Integer range = graph.range(position, node_id);
 		if (range == null || range > visRange)
 		{
@@ -460,18 +474,33 @@ public abstract class RedAgent extends Agent
 
 	protected Action surveyGreedy()
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid survey (disabled)");
+			return MarsUtil.surveyAction();
+		}
 		if (energy < 1) return MarsUtil.rechargeAction();
 		return MarsUtil.surveyAction();
 	}
 
 	protected Action inspectGreedy()
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid inspect (disabled)");
+			return MarsUtil.inspectAction();
+		}
 		if (energy < 2) return MarsUtil.rechargeAction();
 		return MarsUtil.inspectAction();
 	}
 
 	protected Action inspectGreedy(String id)
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid inspect (disabled)");
+			return MarsUtil.inspectAction(id);
+		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
@@ -487,17 +516,28 @@ public abstract class RedAgent extends Agent
 		}
 
 		if (energy < range + 2) return MarsUtil.rechargeAction();
+		if (range == 0) return MarsUtil.inspectAction();
 		return MarsUtil.inspectAction(id);
 	}
 
 	protected Action parryGreedy()
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid parry (disabled)");
+			return MarsUtil.parryAction();
+		}
 		if (energy < 2) return MarsUtil.rechargeAction();
 		return MarsUtil.parryAction();
 	}
 
 	protected Action attackGreedy(String id)
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid attack (disabled)");
+			return MarsUtil.attackAction(id);
+		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
@@ -524,6 +564,11 @@ public abstract class RedAgent extends Agent
 
 	protected Action buyGreedy(String item)
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid buy (disabled)");
+			return MarsUtil.buyAction(item);
+		}
 		if (money < 2)
 		{
 			System.err.println(getName() + " attempted an invalid buy (not enough money): " + item);
@@ -548,6 +593,11 @@ public abstract class RedAgent extends Agent
 
 	protected Action repairGreedy(String id)
 	{
+		if (health == 0)
+		{
+			System.err.println(getName() + " attempted an invalid repair (disabled)");
+			return MarsUtil.repairAction(id);
+		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
