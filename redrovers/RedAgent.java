@@ -410,6 +410,11 @@ public abstract class RedAgent extends Agent
 		return str;
 	}
 
+	/* the following are wrappers for the various MarsUtil action methods. they
+	 * perform basic checks (and print informative error messages) and
+	 * automatically recharge if insufficient energy
+	 */
+
 	protected Action gotoGreedy(String node_id)
 	{
 		if (!graph.hasEdge(position, node_id))
