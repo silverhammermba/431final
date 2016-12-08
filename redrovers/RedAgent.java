@@ -137,6 +137,8 @@ public abstract class RedAgent extends Agent
 	@Override
 	public Action step()
 	{
+		// reset (some) stale information about other agents
+		resetAgents();
 		// process messages first, because they might be outdated
 		handleMessages();
 		// then process percepts, possibly updating message info
@@ -151,6 +153,12 @@ public abstract class RedAgent extends Agent
 	 * Role-specific action selection.
 	 */
 	abstract Action think();
+
+	private void resetAgents()
+	{
+		for (OtherAgent agent : agents.values())
+			agent.position = null;
+	}
 
 	// store all of our own percepts in fields (using handleBelief)
 	private void handlePercepts()
@@ -567,7 +575,7 @@ public abstract class RedAgent extends Agent
 	protected boolean wrongRole()
 	{
 		if (role.equals(getClass().getSimpleName())) return false;
-		System.err.println(role + " agent is running " + getClass().getSimpleName());
+		System.err.println(role + " agent is running class " + getClass().getSimpleName());
 		return true;
 	}
 }
