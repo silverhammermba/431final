@@ -31,6 +31,8 @@ public class Explorer extends RedAgent
 	
 	private LinkedList<String> pathList; //store current path node list
 	
+	
+	
 	public Explorer(String name, String team)
 	{
 		super(name,team);
@@ -73,19 +75,7 @@ public class Explorer extends RedAgent
 		
 		
 		
-		/*
-		//Node start = getNode(sid);
-		LinkedList<String> pathList = graph.explore(position);
-		for(String pos:pathList){
-			System.err.println("\n\nwill go to " + pos + "\n\n");
-			if(energy < maxEnergy/2){
-				return MarsUtil.rechargeAction();
-			}else{
-				return MarsUtil.gotoAction(pos);
-			}		
-			
-		}
-		*/
+		
 		
 		this.pathList = graph.explore(position);
 		
@@ -98,12 +88,32 @@ public class Explorer extends RedAgent
 		
 		}else{  //try to survey
 			List<String> nodes = graph.nodesAtRange(position,1);
-			if(graph.unknownNearby(position)){
+			if(graph.unsurveyedEdges(position)){
 				return MarsUtil.surveyAction();
 			
-			}else{ //try to goto somewhere according to pathList	
-				String pos = pathList.get(0);
+			}else{ //try to goto somewhere according to pathList
+				String pos;
+				for (Map.Entry<String, OtherAgent> agentEntry : agents.entrySet()){
+					//if there is another explorer at same node, random move
+					OtherAgent agent = agentEntry.getValue();
+					if(agent.position.equals(position) && agent.role.equals(role)){
+						//who has more energy go randomly 
+						if(agent.energy <= energy){
+							Random random = new Random();
+							List<String> neighborNodes = graph.nodesAtRange(position,1);
+							pos = neighborNodes.get(random.nextInt(neighborNodes.size()));
+							
+							if(energy < graph.edgeWeight(position,pos)){ //energy too low to go
+								return MarsUtil.rechargeAction();
+							}
+							
+							return MarsUtil.gotoAction(pos);	
+						}		
+					}
+				}
+				
 				if(pathList != null){ //if there is node to go 
+					pos = pathList.get(0);
 					if(energy < graph.edgeWeight(position,pos)){ //energy too low to go
 						return MarsUtil.rechargeAction();
 					}else{
