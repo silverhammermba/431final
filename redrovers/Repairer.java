@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
@@ -31,6 +34,27 @@ public class Repairer extends RedAgent
 	{
 		super(name,team);
 		goalAgent = null;
+	}
+
+	/* I think this will be helpful for refactoring this agent. Returns a path
+	 * to the nearest damaged agent on our team satisfying a test. for example:
+	 *
+	 * pathToDamagedAgent((agent) -> agent.role != null && agent.role.equals("Explorer"))
+	 * returns a path to the nearest damaged explorer on our team (if any)
+	 */
+	LinkedList<String> pathToDamagedAgent(Function<OtherAgent, Boolean> test)
+	{
+		Set<String> pos = new HashSet<String>();
+		for (OtherAgent agent : agents.values())
+		{
+			if (!agent.team.equals(getTeam())) continue;
+			if (agent.knownDamaged() && test.apply(agent))
+				pos.add(agent.position);
+		}
+
+		if (pos.isEmpty()) return null;
+
+		return graph.shortestPath(position, (id) -> pos.contains(id));
 	}
 
 	Action think()
