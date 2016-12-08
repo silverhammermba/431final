@@ -563,4 +563,11 @@ public abstract class RedAgent extends Agent
 		if (energy < range + 2) return MarsUtil.rechargeAction();
 		return MarsUtil.repairAction(id);
 	}
+
+	protected boolean wrongRole()
+	{
+		if (role.equals(getClass().getSimpleName())) return false;
+		System.err.println(role + " agent is running " + getClass().getSimpleName());
+		return true;
+	}
 }
