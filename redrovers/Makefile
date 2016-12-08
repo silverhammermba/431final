@@ -6,7 +6,12 @@ build/redrovers.jar: classes
 classes: $(JAVA)
 	mkdir -p build
 	javac -Xlint -encoding utf8 -d build -classpath ../javaagents/target/javaagents-2.1.jar $(JAVA)
-	touch classes 
+	touch classes
+
+doc: $(JAVA)
+	rm -rf doc
+	mkdir doc
+	javadoc -d doc -classpath ../javaagents/target/javaagents-2.1.jar $(JAVA)
 
 run: build/redrovers.jar
 	rm -rf out

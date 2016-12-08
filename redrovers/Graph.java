@@ -30,7 +30,8 @@ public class Graph
 		public final String id;
 		public final Map<String, Edge> neighbors;
 		public Integer value;
-		public boolean visited;
+		// indicates whether there may be more edges attached to this node
+		public boolean unknownEdges;
 		// for path finding
 		public int distance;
 		public Node pred;
@@ -40,7 +41,7 @@ public class Graph
 			this.id = id;
 			neighbors = new HashMap<String, Edge>();
 			value = null;
-			visited = false;
+			unknownEdges = true;
 		}
 
 		public void addEdge(Node end, Integer weight)
@@ -217,17 +218,20 @@ public class Graph
 	 *
 	 * @param id the node's ID
 	 */
-	public void visit(String id)
+	public void noMoreEdges(String id)
 	{
-		getNode(id).visited = true;
+		getNode(id).unknownEdges = false;
 	}
 
 	/**
 	 * Check if a node is visited
+	 *
+	 * @param id the node's ID
+	 * @return true if the node has the visited flag
 	 */
-	public boolean visited(String id)
+	public boolean unknownEdges(String id)
 	{
-		return getNode(id).visited;
+		return getNode(id).unknownEdges;
 	}
 
 	/**
@@ -236,7 +240,7 @@ public class Graph
 	 * @param id the node's ID
 	 * @return true if the node has edges with null weight, else false
 	 */
-	public boolean unknownNearby(String id)
+	public boolean unsurveyedEdges(String id)
 	{
 		for (Edge edge : getNode(id).neighbors.values())
 		{
@@ -247,27 +251,37 @@ public class Graph
 	}
 
 	/**
-	 * Get a node to goto in order to explore the graph.
+	 * Get a path to follow in order to survey the graph
 	 *
 	 * @param sid the ID of the node the agent is at
-	 * @return the ID of the node to goto. Repeatedly using this method for
-	 *         gotos will eventually get the agent to a node that has not been
-	 *         visited or has edges with unknown weights.
+	 * @return the path, see {@link #shortestPath(String,Function)}
 	 */
 	public LinkedList<String> explore(String sid)
 	{
-		return shortestPath(sid, (id) -> !visited(id) || unknownNearby(id));
+		return shortestPath(sid, (id) -> unknownEdges(id) || unsurveyedEdges(id));
 	}
 
+	/**
+	 * Get the shortest path from node sid to node eid
+	 *
+	 * @param sid the ID of the node the agent is at
+	 * @param eid the ID of the node to path to
+	 * @return the path, see {@link #shortestPath(String,Function)}
+	 */
 	public LinkedList<String> shortestPath(String sid, String eid)
 	{
 		return shortestPath(sid, (id) -> id.equals(eid));
 	}
 
 	/**
-	 * Get a node to goto in order to explore the graph.
+	 * Get the shortest path to any node satisfying some condition.
 	 *
 	 * @param sid the ID of the node the agent is at
+	 * @param destCheck a function taking a node ID and returning true if that
+	 *                  node is an acceptable destination
+	 * @return The path as a list of node IDs. goto each node in order. If
+	 *         sid satisfies the condition, the list will be empty. If there
+	 *         are no nodes satisfying the condition, returns null.
 	 */
 	public LinkedList<String> shortestPath(String sid, Function<String, Boolean> destCheck)
 	{
@@ -325,12 +339,12 @@ public class Graph
 				{
 					e.end.pred = closest;
 					e.end.distance = closest.distance + e.weight;
-					if (!frontier.contains(e.end)) frontier.add(e.end);
+					frontier.add(e.end);
 				}
 			}
 		}
 
-		// no nodes
+		// no reachable destinations
 		return null;
 	}
 
@@ -424,5 +438,58 @@ public class Graph
 		for (Node n : next)
 			nodes.add(n.id);
 		return nodes;
+	}
+
+	// find range (minimum number of edges) between sid and eid
+	// TODO shame that this is so similar to shortestPath, don't know how to DRY it
+	public Integer range(String sid, String eid)
+	{
+		// reset all node predecessors (from previous path-finding attempts)
+		for (Node n : nodes.values())
+			n.pred = null;
+
+		// init frontier for Dijkstra's algorithm
+		Set<Node> frontier = new HashSet<Node>();
+
+		// initial condition for path-finding
+		Node start = getNode(sid);
+		frontier.add(start);
+		start.distance = 0;
+		start.pred = null;
+
+		while (!frontier.isEmpty())
+		{
+			// find closest node in frontier
+			Node closest = null;
+			int dist = 0;
+			for (Node n : frontier)
+			{
+				if (closest == null || n.distance < dist)
+				{
+					closest = n;
+					dist = n.distance;
+				}
+			}
+			// and remove it
+			frontier.remove(closest);
+
+			// done
+			if (closest.id.equals(eid)) return closest.distance;
+
+			// no path found, add new nodes to the frontier
+			for (Edge e : closest.neighbors.values())
+			{
+				// check if we have a new shortest path to the node
+				if (e.end.pred == null || closest.distance + 1 < e.end.distance)
+				{
+					e.end.pred = closest;
+					e.end.distance = closest.distance + 1;
+					frontier.add(e.end);
+				}
+			}
+		}
+
+		// no path to eid
+		return null;
 	}
 }
