@@ -25,6 +25,17 @@ public class OtherAgent
 		this.team = team;
 	}
 
+	/**
+	 * Check if we think this agent is damaged
+	 *
+	 * @return true if we think the agent is damaged (possibly disabled), false
+	 *         if the agent is at full health or we just don't know
+	 */
+	public boolean knownDamaged()
+	{
+		return health != null && (health == 0 || (maxHealth != null && health < maxHealth));
+	}
+
 	@Override
 	public String toString()
 	{
