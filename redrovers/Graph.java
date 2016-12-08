@@ -442,8 +442,17 @@ public class Graph
 		return nodes;
 	}
 
-	// find range (minimum number of edges) between sid and eid
-	// TODO shame that this is so similar to shortestPath, don't know how to DRY it
+	/**
+	 * Find range (minimum number of edges) between two nodes
+	 *
+	 * <p>TODO shame that this is so similar to shortestPath, but I don't know
+	 * how to DRY it.
+	 *
+	 * @param sid one node's ID
+	 * @param eid another other node's ID
+	 * @return the minimum number of known edges connecting those nodes, or
+	 *         null if no path is known between them
+	 */
 	public Integer range(String sid, String eid)
 	{
 		// reset all node predecessors (from previous path-finding attempts)
