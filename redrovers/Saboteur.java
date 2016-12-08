@@ -3,9 +3,9 @@ import eis.iilang.Action;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
-public class Explorer extends RedAgent
+public class Saboteur extends RedAgent
 {
-	public Explorer(String name, String team)
+	public Saboteur(String name, String team)
 	{
 		super(name,team);
 	}
