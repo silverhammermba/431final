@@ -599,11 +599,6 @@ public abstract class RedAgent extends Agent
 
 	protected Action repairGreedy(String id)
 	{
-		if (health == 0)
-		{
-			System.err.println(getName() + " attempted an invalid repair (disabled)");
-			return MarsUtil.repairAction(id);
-		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
@@ -624,7 +619,7 @@ public abstract class RedAgent extends Agent
 			return MarsUtil.repairAction(id);
 		}
 
-		if (energy < range + 2) return MarsUtil.rechargeAction();
+		if (energy < range + (health == 0 ? 3 : 2)) return MarsUtil.rechargeAction();
 		return MarsUtil.repairAction(id);
 	}
 
