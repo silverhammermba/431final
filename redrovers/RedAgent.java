@@ -4,20 +4,15 @@ import eis.iilang.Identifier;
 import eis.iilang.Parameter;
 import eis.iilang.Percept;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
-
-
 
 /**
  * This class defines a (slightly) higher-level API on top of the Agent class.
