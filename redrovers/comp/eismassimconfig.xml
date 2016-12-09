@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Important: You'll need to change the host attribute whenever
+     the server is run of a different machine than the agent!!! -->
+<interfaceConfig scenario="mars2013" host="localhost" port="12300" scheduling="yes" times="no" notifications="no" queued="no" statisticsFile="no" statisticsShell="no" submitStatistic="no">
+  <entities>
+    <entity name="connectionRR1" username="rr1" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR2" username="rr2" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR3" username="rr3" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR4" username="rr4" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR5" username="rr5" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR6" username="rr6" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR7" username="rr7" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR8" username="rr8" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR9" username="rr9" password="brooks" iilang="yes" xml="yes"/>
+    <entity name="connectionRR10" username="rr10" password="brooks" iilang="yes" xml="yes"/>
+  </entities>
+</interfaceConfig>
