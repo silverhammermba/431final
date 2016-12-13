@@ -56,20 +56,92 @@ public class Explorer extends RedAgent
 
 
 
-		this.pathList = graph.explore(position);
+		//this.pathList = graph.explore(position);
 
-		if(energy < 1){ 
-			return rechargeAction();
+		
+		/*
+		if(graph.nodeValue(position) == null){ 
+			return probeGreedy();
 		}
+		*/
+		
+		
+			
+		
+		
+		//Map<String, OtherAgent> agentsCopy = agents;
+		//probe the node 
+		if(graph.nodeValue(position) == null){ 
+			boolean flag = true; //whether this agent should probe
+			
+			for (OtherAgent agent : agents.values()){
+				//if there is another explorer at same node, the agent with bigger name probe it
+				if (getTeam().equals(agent.team) &&        
+						position.equals(agent.position) &&
+						role.equals(agent.role) &&
+						agent.health <= 0 &&
+						getName().compareTo(agent.name) < 0){
+					flag = false; //another agent will probe 
+					break;
+					
+				}
+			}
+			
+			if(flag) return probeGreedy();
+		}
+		
+		
+		
+		
+	
 
-		if(graph.nodeValue(position) == null){ // try to probe it
-			return probeAction();
+		
+		String pos;
+		for (OtherAgent agent : agents.values()){
+			//if there is another explorer at same node, random move
+			if (getTeam().equals(agent.team) && position.equals(agent.position) && role.equals(agent.role)){
+				//who has more energy go randomly 
+				if((agent.energy == energy && getName().compareTo(agent.name) > 0)
+						|| (agent.energy < energy)){
+					
+					//randomly moving
+					Random random = new Random();
+					List<String> neighborNodes = graph.nodesAtRange(position,1);
+					pos = neighborNodes.get(random.nextInt(neighborNodes.size()));
+					return gotoGreedy(pos);
+			
+				}
+			
+			}
+		}
+	
+		
+		
+					
 
-		}else{  //try to survey
-			List<String> nodes = graph.nodesAtRange(position,1);
-			if(graph.unsurveyedEdges(position)){
-				return surveyAction();
+		this.pathList = graph.shortestPath(position, (id) -> (graph.nodeValue(id) == null));
+		 
+		if(this.pathList != null){
+			return gotoGreedy(pathList.pop());
+		}
+		
+		//try to survey	
+		if(graph.unsurveyedEdges(position)){
+			return surveyGreedy();
+		}
+		
+		return skipAction();
 
+	
+
+		
+		
+		
+		
+
+		
+			/*
+		
 			}else{ //try to goto somewhere according to pathList
 				String pos;
 				for (Map.Entry<String, OtherAgent> agentEntry : agents.entrySet()){
@@ -104,6 +176,10 @@ public class Explorer extends RedAgent
 			}
 
 		}
-		return skipAction();
+		*/
+		
+	
 	}
+		
+	
 }
