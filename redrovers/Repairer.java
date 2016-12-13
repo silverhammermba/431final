@@ -74,7 +74,11 @@ public class Repairer extends RedAgent
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
-			// TODO path might be null here
+			if(path == null){
+				LinkedList<String> l = graph.explore(position);
+				String n = l.removeFirst();
+				return gotoGreedy(n);
+			}
 			if(path.size() == 0){
 				if(energy < 3){
 					return rechargeAction();
