@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.Random;
 import eis.iilang.Action;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -28,7 +27,7 @@ public class Explorer extends RedAgent
 
 	Action think()
 	{
-		if (wrongRole()) return MarsUtil.skipAction();
+		if (wrongRole()) return skipAction();
 
 		/*
 		List<String> nodes;
@@ -42,9 +41,9 @@ public class Explorer extends RedAgent
 				if (graph.nodeValue(id) == null)
 				{
 					if (energy < 1 + i)
-						return MarsUtil.rechargeAction();
+						return rechargeAction();
 
-					return MarsUtil.probeAction(id);
+					return probeAction(id);
 				}
 			}
 		}
@@ -60,16 +59,16 @@ public class Explorer extends RedAgent
 		this.pathList = graph.explore(position);
 
 		if(energy < 1){ 
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 
 		if(graph.nodeValue(position) == null){ // try to probe it
-			return MarsUtil.probeAction();
+			return probeAction();
 
 		}else{  //try to survey
 			List<String> nodes = graph.nodesAtRange(position,1);
 			if(graph.unsurveyedEdges(position)){
-				return MarsUtil.surveyAction();
+				return surveyAction();
 
 			}else{ //try to goto somewhere according to pathList
 				String pos;
@@ -84,10 +83,10 @@ public class Explorer extends RedAgent
 							pos = neighborNodes.get(random.nextInt(neighborNodes.size()));
 
 							if(energy < graph.edgeWeight(position,pos)){ //energy too low to go
-								return MarsUtil.rechargeAction();
+								return rechargeAction();
 							}
 
-							return MarsUtil.gotoAction(pos);
+							return gotoAction(pos);
 						}
 					}
 				}
@@ -95,16 +94,16 @@ public class Explorer extends RedAgent
 				if(pathList != null){ //if there is node to go
 					pos = pathList.get(0);
 					if(energy < graph.edgeWeight(position,pos)){ //energy too low to go
-						return MarsUtil.rechargeAction();
+						return rechargeAction();
 					}else{
 						pathList.remove(0);
-						return MarsUtil.gotoAction(pos);
+						return gotoAction(pos);
 					}
 				}
 
 			}
 
 		}
-		return MarsUtil.skipAction();
+		return skipAction();
 	}
 }

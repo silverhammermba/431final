@@ -8,9 +8,7 @@ IFS=$'\n\t'
 basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # JARs
 server_package=$basedir/massim/target/agentcontest-2013-1.4.jar
-agent_pack1=$basedir/redrovers/build/redrovers.jar
-agent_pack2=$basedir/javaagents/target/javaagents-2.1.jar
-agent_packages=$agent_pack1:$agent_pack2
+agent_packages=$basedir/redrovers/build/redrovers.jar:$basedir/javaagents/target/javaagents-2.1.jar
 
 default_server_conf=2013-cse431comp.xml
 
@@ -30,7 +28,10 @@ output=$1
 agenta=$2
 agentb=$3
 server_conf=${4:-$basedir/massim/scripts/conf/$default_server_conf}
+# get absolute path of server conf
+server_conf="$(cd "$(dirname "$server_conf")"; pwd)/$(basename "$server_conf")"
 
+# convert paths on Cygwin
 if [ $(uname -o) == "Cygwin" ]; then
 	server_package=$(cygpath -w $server_package)
 	agent_packages=$(cygpath -wp $agent_packages)

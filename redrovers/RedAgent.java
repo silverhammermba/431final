@@ -4,20 +4,15 @@ import eis.iilang.Identifier;
 import eis.iilang.Parameter;
 import eis.iilang.Percept;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
-
-
 
 /**
  * This class defines a (slightly) higher-level API on top of the Agent class.
@@ -55,7 +50,7 @@ public abstract class RedAgent extends Agent
 	 */
 	protected List<Action> prevActions;
 	/**
-	 * A map from agent IDs to {@link OtherAgent} objects for tracking other agents.
+	 * A map from agent IDs to OtherAgent objects for tracking other agents.
 	 *
 	 * <p>This unifies the percepts inspectedEntity and visibleEntity. To
 	 * ensure a consistent state, the map should be accessed using {@link getAgent}.
@@ -65,8 +60,7 @@ public abstract class RedAgent extends Agent
 	 * The map of mars.
 	 *
 	 * <p>This unifies the percepts surveyedEdge, edges, vertices, visibleEdge,
-	 * probedVertex. <b>TODO</b> it should also store the visibleVertex percept
-	 * for tracking team zones.
+	 * visibleVertex probedVertex.
 	 */
 	protected Graph graph;
 	protected int money; // team money
@@ -128,8 +122,7 @@ public abstract class RedAgent extends Agent
 	@Override
 	public void handlePercept(Percept percept)
 	{
-		System.err.println("Cannot handle percepts-as-notifications");
-		System.exit(1);
+		throw new RuntimeException("Cannot handle percepts-as-notifications");
 	}
 
 	/**
@@ -286,6 +279,15 @@ public abstract class RedAgent extends Agent
 			case "money":
 				money = Integer.parseInt(params.get(0));
 				break;
+			case "nextAction":
+				sender.step = Integer.parseInt(params.get(1));
+
+				LinkedList<Parameter> aparams = new LinkedList<Parameter>();
+				for (String param : params.subList(2, params.size()))
+					aparams.add(new Identifier(param));
+
+				sender.nextAction = new Action(params.get(0), aparams);
+				break;
 			case "position":
 				String pos = params.get(0);
 				// we will at least get visibleEdge beliefs for this pos
@@ -372,6 +374,12 @@ public abstract class RedAgent extends Agent
 				if (sender == null)
 					broadcastBelief(belief);
 				break;
+			case "visibleVertex":
+				// TODO should we reset node teams at some point? (each step?)
+				graph.nodeTeam(params.get(0), params.get(1).equals("none") ? null : params.get(1));
+				if (sender == null)
+					broadcastBelief(belief);
+				break;
 			case "zoneScore":
 				zoneScore = Integer.parseInt(params.get(0));
 				break;
@@ -380,13 +388,16 @@ public abstract class RedAgent extends Agent
 				break;
 			default:
 				if (sender == null)
-					System.err.println(getName() + " can't handle percept " + belief);
+					System.out.println(getName() + " can't handle percept " + belief);
 				else
 					System.err.println(getName() + " can't handle message " + belief);
 		}
 	}
 
 
+	/**
+	 * @return a string describing most of the percepts
+	 */
 	@Override
 	public String toString()
 	{
@@ -398,10 +409,7 @@ public abstract class RedAgent extends Agent
 		str += "† " + strength + "\n";
 		str += "pos " + position + "\n";
 		if (!prevActions.isEmpty())
-		{
-
 			str += prevActions.get(prevActions.size() - 1) + "\n";
-		}
 
 
 		if (!agents.isEmpty())
@@ -424,7 +432,7 @@ public abstract class RedAgent extends Agent
 		return str;
 	}
 
-	/* the following are wrappers for the various MarsUtil action methods. they
+	/* the following are wrappers for the various action methods. they
 	 * perform basic checks (and print informative error messages) and
 	 * automatically recharge if insufficient energy
 	 */
@@ -434,19 +442,19 @@ public abstract class RedAgent extends Agent
 		if (!graph.hasEdge(position, node_id))
 		{
 			System.err.println(getName() + " attempted an invalid goto: " + position + " -> " + node_id);
-			return MarsUtil.gotoAction(node_id);
+			return gotoAction(node_id);
 		}
 
 		Integer weight = graph.edgeWeight(position, node_id);
 		if (weight == null)
 		{
-			if (health == 0) return MarsUtil.gotoAction(node_id);
+			if (health == 0) return gotoAction(node_id);
 			return surveyGreedy();
 		}
 
-		if (energy < weight) return MarsUtil.rechargeAction();
+		if (energy < weight) return rechargeAction();
 
-		return MarsUtil.gotoAction(node_id);
+		return gotoAction(node_id);
 	}
 
 	protected Action probeGreedy()
@@ -454,10 +462,10 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid probe (disabled)");
-			return MarsUtil.probeAction();
+			return probeAction();
 		}
-		if (energy < 1) return MarsUtil.rechargeAction();
-		return MarsUtil.probeAction();
+		if (energy < 1) return rechargeAction();
+		return probeAction();
 	}
 
 	protected Action probeGreedy(String node_id)
@@ -465,17 +473,17 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid probe (disabled)");
-			return MarsUtil.probeAction(node_id);
+			return probeAction(node_id);
 		}
 		Integer range = graph.range(position, node_id);
 		if (range == null || range > visRange)
 		{
 			System.err.println(getName() + " attempted an invalid probe: " + node_id + " (from " + position + ")");
-			return MarsUtil.probeAction(node_id);
+			return probeAction(node_id);
 		}
 
-		if (energy < range + 1) return MarsUtil.rechargeAction();
-		return MarsUtil.probeAction(node_id);
+		if (energy < range + 1) return rechargeAction();
+		return probeAction(node_id);
 	}
 
 	protected Action surveyGreedy()
@@ -483,10 +491,10 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid survey (disabled)");
-			return MarsUtil.surveyAction();
+			return surveyAction();
 		}
-		if (energy < 1) return MarsUtil.rechargeAction();
-		return MarsUtil.surveyAction();
+		if (energy < 1) return rechargeAction();
+		return surveyAction();
 	}
 
 	protected Action inspectGreedy()
@@ -494,10 +502,10 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid inspect (disabled)");
-			return MarsUtil.inspectAction();
+			return inspectAction();
 		}
-		if (energy < 2) return MarsUtil.rechargeAction();
-		return MarsUtil.inspectAction();
+		if (energy < 2) return rechargeAction();
+		return inspectAction();
 	}
 
 	protected Action inspectGreedy(String id)
@@ -505,25 +513,25 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid inspect (disabled)");
-			return MarsUtil.inspectAction(id);
+			return inspectAction(id);
 		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
 			System.err.println(getName() + " attempted an invalid inspect (unknown agent/range): " + id);
-			return MarsUtil.inspectAction(id);
+			return inspectAction(id);
 		}
 
 		Integer range = graph.range(position, agents.get(id).position);
 		if (range == null || range > visRange)
 		{
 			System.err.println(getName() + " attempted an invalid inspect (out of range): " + id + " (from " + position + ")");
-			return MarsUtil.inspectAction(id);
+			return inspectAction(id);
 		}
 
-		if (energy < range + 2) return MarsUtil.rechargeAction();
-		if (range == 0) return MarsUtil.inspectAction();
-		return MarsUtil.inspectAction(id);
+		if (energy < range + 2) return rechargeAction();
+		if (range == 0) return inspectAction();
+		return inspectAction(id);
 	}
 
 	protected Action parryGreedy()
@@ -531,10 +539,10 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid parry (disabled)");
-			return MarsUtil.parryAction();
+			return parryAction();
 		}
-		if (energy < 2) return MarsUtil.rechargeAction();
-		return MarsUtil.parryAction();
+		if (energy < 2) return rechargeAction();
+		return parryAction();
 	}
 
 	protected Action attackGreedy(String id)
@@ -542,30 +550,30 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid attack (disabled)");
-			return MarsUtil.attackAction(id);
+			return attackAction(id);
 		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
 			System.err.println(getName() + " attempted an invalid attack (unknown agent/range): " + id);
-			return MarsUtil.attackAction(id);
+			return attackAction(id);
 		}
 		// same team is bad
 		if (agents.get(id).team.equals(getTeam()))
 		{
 			System.err.println(getName() + " attempted an invalid attack (same team): " + id);
-			return MarsUtil.attackAction(id);
+			return attackAction(id);
 		}
 
 		Integer range = graph.range(position, agents.get(id).position);
 		if (range == null || range > visRange)
 		{
 			System.err.println(getName() + " attempted an invalid attack (out of range): " + id + " (from " + position + ")");
-			return MarsUtil.attackAction(id);
+			return attackAction(id);
 		}
 
-		if (energy < range + 2) return MarsUtil.rechargeAction();
-		return MarsUtil.attackAction(id);
+		if (energy < range + 2) return rechargeAction();
+		return attackAction(id);
 	}
 
 	protected Action buyGreedy(String item)
@@ -573,12 +581,12 @@ public abstract class RedAgent extends Agent
 		if (health == 0)
 		{
 			System.err.println(getName() + " attempted an invalid buy (disabled)");
-			return MarsUtil.buyAction(item);
+			return buyAction(item);
 		}
 		if (money < 2)
 		{
 			System.err.println(getName() + " attempted an invalid buy (not enough money): " + item);
-			return MarsUtil.buyAction(item);
+			return buyAction(item);
 		}
 
 		switch (item)
@@ -590,42 +598,37 @@ public abstract class RedAgent extends Agent
 				break;
 			default:
 				System.err.println(getName() + " attempted an invalid buy: " + item);
-				return MarsUtil.buyAction(item);
+				return buyAction(item);
 		}
 
-		if (energy < 2) return MarsUtil.rechargeAction();
-		return MarsUtil.buyAction(item);
+		if (energy < 2) return rechargeAction();
+		return buyAction(item);
 	}
 
 	protected Action repairGreedy(String id)
 	{
-		if (health == 0)
-		{
-			System.err.println(getName() + " attempted an invalid repair (disabled)");
-			return MarsUtil.repairAction(id);
-		}
 		// if we don't know the agent or its position, that's bad
 		if (!agents.containsKey(id) || agents.get(id).position == null)
 		{
 			System.err.println(getName() + " attempted an invalid repair (unknown agent/range): " + id);
-			return MarsUtil.repairAction(id);
+			return repairAction(id);
 		}
 		// other team is bad
 		if (!agents.get(id).team.equals(getTeam()))
 		{
 			System.err.println(getName() + " attempted an invalid repair (wrong team): " + id);
-			return MarsUtil.repairAction(id);
+			return repairAction(id);
 		}
 
 		Integer range = graph.range(position, agents.get(id).position);
 		if (range == null || range > visRange)
 		{
 			System.err.println(getName() + " attempted an invalid repair (out of range): " + id + " (from " + position + ")");
-			return MarsUtil.repairAction(id);
+			return repairAction(id);
 		}
 
-		if (energy < range + 2) return MarsUtil.rechargeAction();
-		return MarsUtil.repairAction(id);
+		if (energy < range + (health == 0 ? 3 : 2)) return rechargeAction();
+		return repairAction(id);
 	}
 
 	protected boolean wrongRole()
@@ -633,5 +636,164 @@ public abstract class RedAgent extends Agent
 		if (role.equals(getClass().getSimpleName())) return false;
 		System.err.println(role + " agent is running class " + getClass().getSimpleName());
 		return true;
+	}
+
+	// convert a belief to an action, adding the current step as a parameter
+	private LogicBelief actionToBelief(Action action)
+	{
+		List<String> params = new ArrayList<String>();
+		params.add(action.getName());
+		params.add(Integer.toString(step));
+		for (Parameter param : action.getParameters())
+			params.add("" + param);
+
+		return new LogicBelief("nextAction", params);
+	}
+
+	// convert a belief to an action, returns null if the action is outdated
+	private Action beliefToAction(LogicBelief belief)
+	{
+		if (!belief.getPredicate().equals("nextAction"))
+			throw new RuntimeException("Attempt to convert non-action belief " + belief);
+
+		List<String> params = belief.getParameters();
+
+		if (Integer.parseInt(params.get(1)) != step) return null;
+
+		LinkedList<Parameter> aparams = new LinkedList<Parameter>();
+		for (String param : params.subList(2, params.size()))
+			aparams.add(new Identifier(param));
+
+		return new Action(params.get(0), aparams);
+	}
+
+	/* The following are wrappers for the various MarsUtil action methods.
+	 * Before returning the action, they broadcast it to the team
+	 */
+
+	/**
+	 * @param nodeName the node to goto
+	 * @return a goto action
+	 */
+	protected Action gotoAction(String nodeName)
+	{
+		Action action = MarsUtil.gotoAction(nodeName);
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @return a skip action
+	 */
+	protected Action skipAction()
+	{
+		Action action = MarsUtil.skipAction();
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @return a probe action
+	 */
+	protected Action probeAction()
+	{
+		Action action = MarsUtil.probeAction();
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @param nodeName the node to probe
+	 * @return a probe action
+	 */
+	protected Action probeAction(String nodeName)
+	{
+		Action action = MarsUtil.probeAction(nodeName);
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @return a survey action
+	 */
+	protected Action surveyAction()
+	{
+		Action action = MarsUtil.surveyAction();
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @return an inspect action
+	 */
+	protected Action inspectAction()
+	{
+		Action action = MarsUtil.inspectAction();
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @param agentName the agent to inspect
+	 * @return an inspect action
+	 */
+	protected Action inspectAction(String agentName)
+	{
+		Action action = MarsUtil.inspectAction(agentName);
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @return a parry action
+	 */
+	protected Action parryAction()
+	{
+		Action action = MarsUtil.parryAction();
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @param entityName the entity to attack
+	 * @return an attack action
+	 */
+	protected Action attackAction(String entityName)
+	{
+		Action action = MarsUtil.attackAction(entityName);
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @param item the item to buy
+	 * @return a buy action
+	 */
+	protected Action buyAction(String item)
+	{
+		Action action = MarsUtil.buyAction(item);
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @param entity the entity to repair
+	 * @return a repair action
+	 */
+	protected Action repairAction(String entity)
+	{
+		Action action = MarsUtil.repairAction(entity);
+		broadcastBelief(actionToBelief(action));
+		return action;
+	}
+
+	/**
+	 * @return a recharge action
+	 */
+	protected Action rechargeAction()
+	{
+		Action action = MarsUtil.rechargeAction();
+		broadcastBelief(actionToBelief(action));
+		return action;
 	}
 }

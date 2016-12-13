@@ -58,10 +58,10 @@ public class Saboteur extends RedAgent
 	
 	Action think()
 	{
-		if (wrongRole()) return MarsUtil.skipAction();
+		if (wrongRole()) return skipAction();
 
 		if(energy == 0){
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 
 		if(goalAgent != null){
@@ -75,18 +75,18 @@ public class Saboteur extends RedAgent
 			if (path == null)
 			{
 				goalAgent = null;
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			if(path.size() == 0){
 				if(energy < 2){
-					return MarsUtil.rechargeAction();
+					return rechargeAction();
 				}
 				else {
 					path = null;
 					String name = goalAgent.name;
 					// TODO somehow we can get here even when we know goalAgent has 0 health
 					goalAgent = null;
-					return MarsUtil.attackAction(name);
+					return attackAction(name);
 				}
 			}
 			else{
@@ -95,9 +95,9 @@ public class Saboteur extends RedAgent
 				int weight = graph.edgeWeight(position, next);
 				if(energy < weight){
 					path.addFirst(next);
-					return MarsUtil.rechargeAction();
+					return rechargeAction();
 				}
-				return MarsUtil.gotoAction(next);
+				return gotoAction(next);
 			}
 		}
 		
@@ -117,10 +117,26 @@ public class Saboteur extends RedAgent
 		List<OtherAgent> healthy = new ArrayList<OtherAgent>();
 		List<OtherAgent> damaged = new ArrayList<OtherAgent>();
 		List<OtherAgent> priority = new ArrayList<OtherAgent>();
+		List<OtherAgent> here = new ArrayList<OtherAgent>();
 		for(OtherAgent agent : agents.values()){
+			if(!agent.team.equals(this.getTeam())){
+				if(agent.position != null && agent.position.equals(position)){
+					Action last = prevActions.get(prevActions.size() - 1);
+					if(agent.health != null && agent.health != 0){
+						System.out.println("The agent's health is: " + agent.health);
+						here.add(agent);
+					}
+					else if(agent.health == null && last != null && last.getName() != "attack"){
+						here.add(agent);
+					}
+				}
+			}
 			if(agent.role != null && !agent.team.equals(this.getTeam())){
+				
 				if(agent.role.equals("Repairer") || agent.role.equals("Explorer")){
-					priority.add(agent);
+					if(agent.health != null && agent.health != 0){
+						priority.add(agent);
+					}
 				}
 				else if(agent.health == agent.maxHealth){
 					healthy.add(agent);
@@ -129,6 +145,9 @@ public class Saboteur extends RedAgent
 					damaged.add(agent);
 				}
 			}
+		}
+		if(here.size() != 0){
+			return attackGreedy(here.get(0).name);
 		}
 		if(priority.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
@@ -187,6 +206,10 @@ public class Saboteur extends RedAgent
 		if(goalAgent == null){
 			path = graph.explore(position);
 			goalAgent = null;
+			// TODO path might be null here
+			if(path == null){
+				return MarsUtil.skipAction();
+			}
 			System.out.println("path size is: " + path.size());
 		}
 		if(path != null && path.size() != 0){
@@ -194,31 +217,31 @@ public class Saboteur extends RedAgent
 			int weight = graph.edgeWeight(position, next);
 			if(energy < weight){
 				path.addFirst(next);
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			if(path.size() == 0){
 				path = null;
 			}
-			return MarsUtil.gotoAction(next);
+			return gotoAction(next);
 		}
-		else if(goalAgent != null && path.size() == 0){
+		else if(goalAgent != null && path.size() == 0 && goalAgent.health != 0){
 			if(energy < 2){
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			else {
 				path = null;
-				System.out.println("Attacking " + goalAgent);
+				System.out.println("Attacking " + goalAgent + " with health of " + goalAgent.health);
 				String name = goalAgent.name;
 				goalAgent = null;
 				// TODO somehow we can get here even when we know goalAgent has 0 health
-				return MarsUtil.attackAction(name);
+				return attackAction(name);
 			}
 		}
 		else if(goalAgent == null && path.size() == 0){
 			path = null;
-			return MarsUtil.surveyAction();
+			return surveyAction();
 		}
 
-		return MarsUtil.skipAction();
+		return skipAction();
 	}
 }

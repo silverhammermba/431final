@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<javaAgentsConfig>
+  <agents>
+    <agent name="rr1"  entity="connectionRR1"  class="redrovers.Explorer"  team="RedRovers"/>
+    <agent name="rr2"  entity="connectionRR2"  class="redrovers.Explorer"  team="RedRovers"/>
+    <agent name="rr3"  entity="connectionRR3"  class="redrovers.Repairer"  team="RedRovers"/>
+    <agent name="rr4"  entity="connectionRR4"  class="redrovers.Repairer"  team="RedRovers"/>
+    <agent name="rr5"  entity="connectionRR5"  class="redrovers.Saboteur"  team="RedRovers"/>
+    <agent name="rr6"  entity="connectionRR6"  class="redrovers.Saboteur"  team="RedRovers"/>
+    <agent name="rr7"  entity="connectionRR7"  class="redrovers.Sentinel"  team="RedRovers"/>
+    <agent name="rr8"  entity="connectionRR8"  class="redrovers.Sentinel"  team="RedRovers"/>
+    <agent name="rr9"  entity="connectionRR9"  class="redrovers.Inspector" team="RedRovers"/>
+    <agent name="rr10" entity="connectionRR10" class="redrovers.Inspector" team="RedRovers"/>
+  </agents>
+</javaAgentsConfig>

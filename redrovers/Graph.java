@@ -30,17 +30,20 @@ public class Graph
 		public final String id;
 		public final Map<String, Edge> neighbors;
 		public Integer value;
+		public String team;
 		// indicates whether there may be more edges attached to this node
 		public boolean unknownEdges;
 		// for path finding
 		public int distance;
 		public Node pred;
 
+		// TODO handle color
 		public Node(String id)
 		{
 			this.id = id;
 			neighbors = new HashMap<String, Edge>();
 			value = null;
+			team = null;
 			unknownEdges = true;
 		}
 
@@ -78,8 +81,19 @@ public class Graph
 		@Override
 		public String toString()
 		{
-			if (value == null) return id;
-			return id + "(" + value + ")";
+			String str = id;
+			if (value != null || team != null)
+			{
+				str += "(";
+				if (value != null)
+				{
+					str += value;
+					if (team != null) str += ",";
+				}
+				if (team != null) str += team;
+				str += ")";
+			}
+			return str;
 		}
 	}
 
@@ -370,6 +384,27 @@ public class Graph
 		getNode(id).value = value;
 	}
 
+	/**
+	 * Get the team of a node.
+	 *
+	 * @param id the node's ID
+	 */
+	public String nodeTeam(String id)
+	{
+		return getNode(id).team;
+	}
+
+	/**
+	 * Set the team of a node.
+	 *
+	 * @param id the node's ID
+	 * @param team the team
+	 */
+	public void nodeTeam(String id, String team)
+	{
+		getNode(id).team = team;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -389,13 +424,7 @@ public class Graph
 	// get node with the given id (possibly creating it first)
 	private Node getNode(String n1)
 	{
-		if (n1 == null)
-		{
-			System.err.println("Attempt to add null node");
-			for (StackTraceElement tr : Thread.currentThread().getStackTrace())
-				System.err.println(tr);
-			System.exit(1);
-		}
+		if (n1 == null) throw new RuntimeException("Attempt to add null node");
 		if (nodes.containsKey(n1)) return nodes.get(n1);
 		nodes.put(n1, new Node(n1));
 		return nodes.get(n1);

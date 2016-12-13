@@ -18,7 +18,6 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -59,10 +58,10 @@ public class Repairer extends RedAgent
 
 	Action think()
 	{
-		if (wrongRole()) return MarsUtil.skipAction();
+		if (wrongRole()) return skipAction();
 
 		if(energy == 0){
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 
 		if(goalAgent != null){
@@ -75,15 +74,20 @@ public class Repairer extends RedAgent
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
+			if(path == null){
+				LinkedList<String> l = graph.explore(position);
+				String n = l.removeFirst();
+				return gotoGreedy(n);
+			}
 			if(path.size() == 0){
 				if(energy < 3){
-					return MarsUtil.rechargeAction();
+					return rechargeAction();
 				}
 				else {
 					path = null;
 					String name = goalAgent.name;
 					goalAgent = null;
-					return MarsUtil.repairAction(name);
+					return repairAction(name);
 				}
 			}
 			else{
@@ -92,9 +96,9 @@ public class Repairer extends RedAgent
 				int weight = graph.edgeWeight(position, next);
 				if(energy < weight){
 					path.addFirst(next);
-					return MarsUtil.rechargeAction();
+					return rechargeAction();
 				}
-				return MarsUtil.gotoAction(next);
+				return gotoAction(next);
 			}
 		}
 		
@@ -198,29 +202,29 @@ public class Repairer extends RedAgent
 			int weight = graph.edgeWeight(position, next);
 			if(energy < weight){
 				path.addFirst(next);
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			if(path.size() == 0){
 				path = null;
 			}
-			return MarsUtil.gotoAction(next);
+			return gotoAction(next);
 		}
 		else if(goalAgent != null && path.size() == 0){
 			if(energy < 3){
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			else {
 				path = null;
 				String name = goalAgent.name;
 				goalAgent = null;
-				return MarsUtil.repairAction(name);
+				return repairAction(name);
 			}
 		}
 		else if(goalAgent == null && (path == null || path.size() == 0)){
 			path = null;
-			return MarsUtil.surveyAction();
+			return surveyAction();
 		}
 
-		return MarsUtil.skipAction();
+		return skipAction();
 	}
 }

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 public class Inspector extends RedAgent
 {
@@ -17,7 +16,7 @@ public class Inspector extends RedAgent
 
 	Action think()
 	{
-		if (wrongRole()) return MarsUtil.skipAction();
+		if (wrongRole()) return skipAction();
 
 		// find enemy agents to inspect
 		int known = 0; // keep track of total inspected
@@ -44,7 +43,7 @@ public class Inspector extends RedAgent
 		if (known == teamSize)
 		{
 			// TODO maybe keep inspecting to find out health? secure territory?
-			return MarsUtil.skipAction();
+			return skipAction();
 		}
 
 		LinkedList<String> path;
