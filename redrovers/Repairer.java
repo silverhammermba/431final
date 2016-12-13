@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 import apltk.interpreter.data.Belief;
@@ -56,6 +57,7 @@ public class Repairer extends RedAgent
 		return graph.shortestPath(position, (id) -> pos.contains(id));
 	}
 
+	
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
@@ -65,20 +67,19 @@ public class Repairer extends RedAgent
 		}
 
 		if(goalAgent != null){
-			System.out.println("my goal is this agent: " + goalAgent);
 			checkGoal();
-			
 		}
 		if(goalAgent != null && goalAgent.role != null){
-			System.out.println("in goal method");
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
-			//doesn't seem useful to try ranged repair, would only repair 1 hp
+			//if the goal is not yet reachable, explore
 			if(path == null){
+				goalAgent = null;
 				LinkedList<String> l = graph.explore(position);
 				String n = l.removeFirst();
 				return gotoGreedy(n);
 			}
+			//if already on the node with the damaged agent
 			if(path.size() == 0){
 				if(energy < 3){
 					return rechargeAction();
@@ -90,23 +91,21 @@ public class Repairer extends RedAgent
 					return repairAction(name);
 				}
 			}
-			else{
+			else{ //if have a goal agent but not reached yet
 				path = graph.shortestPath(position, goalAgent.position);
 				String next = path.removeFirst();
 				int weight = graph.edgeWeight(position, next);
-				if(energy < weight){
-					path.addFirst(next);
-					return rechargeAction();
-				}
-				return gotoAction(next);
+				return gotoGreedy(next);
 			}
 		}
 		
 		return findGoal();
 	}
 	
+	
 	void checkGoal(){
 		int health = goalAgent.health;
+		//check if already repaired
 		if(health == goalAgent.maxHealth){
 			goalAgent = null;
 			path = null;
@@ -115,6 +114,8 @@ public class Repairer extends RedAgent
 			path = graph.shortestPath(position, goalAgent.position);
 		}
 	}
+	
+	
 	Action findGoal(){
 		List<OtherAgent> disabled = new ArrayList<OtherAgent>();
 		List<OtherAgent> damaged = new ArrayList<OtherAgent>();
@@ -125,15 +126,12 @@ public class Repairer extends RedAgent
 			}
 			if(agent.team.equals(this.getTeam())){
 				if((agent.role.equals("Explorer") || agent.role.equals("Repairer")) && agent.health < agent.maxHealth){
-					System.out.println("This agent needs to be repaired " + agent.name);
 					priority.add(agent);
 				}
 				else if(agent.health != null && agent.health == 0){
-					System.out.println("This agent needs to be repaired " + agent.name);
 					disabled.add(agent);
 				}
 				else if(agent.knownDamaged()){
-					System.out.println("This agent needs to be repaired " + agent.name);
 					damaged.add(agent);
 				}
 			}
@@ -154,7 +152,6 @@ public class Repairer extends RedAgent
 			}
 			path = closest;
 			goalAgent = goal;
-			System.out.println("my goal is this agent: " + goalAgent);
 		}
 		if(path == null && disabled.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
@@ -172,7 +169,6 @@ public class Repairer extends RedAgent
 			}
 			path = closest;
 			goalAgent = goal;
-			System.out.println("my goal is this agent: " + goalAgent);
 		}
 		if(path == null && damaged.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
@@ -190,12 +186,10 @@ public class Repairer extends RedAgent
 			}
 			path = closest;
 			goalAgent = goal;
-			System.out.println("my goal is this agent: " + goalAgent);
 		}
 		if(goalAgent == null){
 			path = graph.explore(position);
 			goalAgent = null;
-			if (path != null) System.out.println("path size is: " + path.size());
 		}
 		if(path != null && path.size() != 0){
 			String next = path.removeFirst();
@@ -220,7 +214,12 @@ public class Repairer extends RedAgent
 				return repairAction(name);
 			}
 		}
-		else if(goalAgent == null && (path == null || path.size() == 0)){
+		else if(path == null){
+			goalAgent = null;
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+		}
+		else if(goalAgent == null && path.size() == 0){
 			path = null;
 			return surveyAction();
 		}

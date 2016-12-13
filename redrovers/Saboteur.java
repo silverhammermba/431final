@@ -36,11 +36,6 @@ public class Saboteur extends RedAgent
 		goalAgent = null;
 	}
 
-	/* I think this will be helpful for refactoring this agent. for example:
-	 *
-	 * pathToDamagedAgent((agent) -> agent.role != null && agent.role.equals("Explorer"))
-	 * returns a path to the nearest damaged explorer on our team (if any)
-	 */
 	LinkedList<String> pathToAgent(Function<OtherAgent, Boolean> test)
 	{
 		Set<String> pos = new HashSet<String>();
@@ -63,19 +58,39 @@ public class Saboteur extends RedAgent
 		if(energy == 0){
 			return rechargeAction();
 		}
-
+		if(health == 0){
+			LinkedList<String> p = pathToAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
+			
+			if(path != null && path.size() == 0){
+				return skipAction();
+			}
+			else if(path == null){
+				System.out.println("Cant get to repairer");
+				p = graph.explore(position);
+			}
+			if(p == null || p.size() == 0){
+				return MarsUtil.skipAction();
+			}
+			System.out.println("going to repairer");
+			return gotoGreedy(p.removeFirst());
+		}
 		if(goalAgent != null){
-			System.out.println("my goal is this agent: " + goalAgent);
 			checkGoal();
 		}
 		if(goalAgent != null){
 			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//doesn't seem useful to try ranged repair, would only repair 1 hp
-			if (path == null)
-			{
+			if(path == null){
 				goalAgent = null;
-				return rechargeAction();
+				LinkedList<String> l = graph.explore(position);
+				if(l != null && l.size() != 0){
+					String n = l.removeFirst();
+					return gotoGreedy(n);
+				}
+				else{
+					return MarsUtil.skipAction();
+				}
 			}
 			if(path.size() == 0){
 				if(energy < 2){
@@ -84,7 +99,6 @@ public class Saboteur extends RedAgent
 				else {
 					path = null;
 					String name = goalAgent.name;
-					// TODO somehow we can get here even when we know goalAgent has 0 health
 					goalAgent = null;
 					return attackAction(name);
 				}
@@ -121,9 +135,11 @@ public class Saboteur extends RedAgent
 		for(OtherAgent agent : agents.values()){
 			if(!agent.team.equals(this.getTeam())){
 				if(agent.position != null && agent.position.equals(position)){
-					Action last = prevActions.get(prevActions.size() - 1);
+					Action last = null;
+					if(prevActions.size() != 0){
+						last = prevActions.get(prevActions.size() - 1);
+					}
 					if(agent.health != null && agent.health != 0){
-						System.out.println("The agent's health is: " + agent.health);
 						here.add(agent);
 					}
 					else if(agent.health == null && last != null && last.getName() != "attack"){
@@ -165,7 +181,6 @@ public class Saboteur extends RedAgent
 			}
 			path = closest;
 			goalAgent = goal;
-			System.out.println("my goal is this agent: " + goalAgent);
 		}
 		if(path == null && damaged.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
@@ -183,7 +198,6 @@ public class Saboteur extends RedAgent
 			}
 			path = closest;
 			goalAgent = goal;
-			System.out.println("my goal is this agent: " + goalAgent);
 		}
 		if(path == null && healthy.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
@@ -201,7 +215,6 @@ public class Saboteur extends RedAgent
 			}
 			path = closest;
 			goalAgent = goal;
-			System.out.println("my goal is this agent: " + goalAgent);
 		}
 		if(goalAgent == null){
 			path = graph.explore(position);
