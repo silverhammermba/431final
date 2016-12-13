@@ -1,4 +1,5 @@
 package redrovers;
+import eis.iilang.Action;
 
 /**
  * This class is a simple public structure for storing information about other agents.
@@ -18,6 +19,8 @@ public class OtherAgent
 	public Integer maxHealth;
 	public Integer visRange;
 	public Integer strength;
+	public Integer step;
+	public Action nextAction;
 
 	public OtherAgent(String name, String team)
 	{
@@ -36,6 +39,18 @@ public class OtherAgent
 		return health != null && (health == 0 || (maxHealth != null && health < maxHealth));
 	}
 
+	/**
+	 * This agent's next broadcasted action
+	 *
+	 * @param step The current step (to determine if the next action is out-of-date)
+	 * @return the next action (if we know it) else null
+	 */
+	public Action next(int step)
+	{
+		if (this.step == null || nextAction == null || !this.step.equals(step)) return null;
+		return nextAction;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -48,6 +63,7 @@ public class OtherAgent
 		if (visRange != null) str += ", → " + visRange;
 		if (strength != null) str += ", † " + strength;
 		if (position != null) str += ", " + position;
+		if (nextAction != null) str += " " + nextAction + " (" + step + ")";
 
 		return str;
 	}

@@ -50,7 +50,7 @@ public abstract class RedAgent extends Agent
 	 */
 	protected List<Action> prevActions;
 	/**
-	 * A map from agent IDs to {@link OtherAgent} objects for tracking other agents.
+	 * A map from agent IDs to OtherAgent objects for tracking other agents.
 	 *
 	 * <p>This unifies the percepts inspectedEntity and visibleEntity. To
 	 * ensure a consistent state, the map should be accessed using {@link getAgent}.
@@ -60,8 +60,7 @@ public abstract class RedAgent extends Agent
 	 * The map of mars.
 	 *
 	 * <p>This unifies the percepts surveyedEdge, edges, vertices, visibleEdge,
-	 * probedVertex. <b>TODO</b> it should also store the visibleVertex percept
-	 * for tracking team zones.
+	 * visibleVertex probedVertex.
 	 */
 	protected Graph graph;
 	protected int money; // team money
@@ -280,6 +279,15 @@ public abstract class RedAgent extends Agent
 			case "money":
 				money = Integer.parseInt(params.get(0));
 				break;
+			case "nextAction":
+				sender.step = Integer.parseInt(params.get(1));
+
+				LinkedList<Parameter> aparams = new LinkedList<Parameter>();
+				for (String param : params.subList(2, params.size()))
+					aparams.add(new Identifier(param));
+
+				sender.nextAction = new Action(params.get(0), aparams);
+				break;
 			case "position":
 				String pos = params.get(0);
 				// we will at least get visibleEdge beliefs for this pos
@@ -366,6 +374,12 @@ public abstract class RedAgent extends Agent
 				if (sender == null)
 					broadcastBelief(belief);
 				break;
+			case "visibleVertex":
+				// TODO should we reset node teams at some point? (each step?)
+				graph.nodeTeam(params.get(0), params.get(1).equals("none") ? null : params.get(1));
+				if (sender == null)
+					broadcastBelief(belief);
+				break;
 			case "zoneScore":
 				zoneScore = Integer.parseInt(params.get(0));
 				break;
@@ -374,7 +388,7 @@ public abstract class RedAgent extends Agent
 				break;
 			default:
 				if (sender == null)
-					System.err.println(getName() + " can't handle percept " + belief);
+					System.out.println(getName() + " can't handle percept " + belief);
 				else
 					System.err.println(getName() + " can't handle message " + belief);
 		}
@@ -395,10 +409,7 @@ public abstract class RedAgent extends Agent
 		str += "† " + strength + "\n";
 		str += "pos " + position + "\n";
 		if (!prevActions.isEmpty())
-		{
-
 			str += prevActions.get(prevActions.size() - 1) + "\n";
-		}
 
 
 		if (!agents.isEmpty())
