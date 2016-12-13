@@ -26,6 +26,7 @@ public class Sentinel extends RedAgent
 	private OtherAgent goalAgent;	
 	private LinkedList<String> path;
 	public Sentinel(String name, String team)
+	
 	{
 		super(name,team);
 		goalAgent = null;
@@ -51,7 +52,18 @@ public class Sentinel extends RedAgent
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
-
+		
+		if (graph.unsurveyedEdges(position))
+		{
+			return surveyGreedy();
+		}
+		
+		LinkedList<String> path = graph.explore(position);
+		if (path != null)
+		{
+			return gotoGreedy(path.pop());
+		}
+		
 		if(energy == 0){
 			return rechargeAction();
 		}
