@@ -18,6 +18,29 @@ public class Inspector extends RedAgent
 	{
 		if (wrongRole()) return skipAction();
 
+		if (health == 0)
+		{
+			for (OtherAgent agent : agents.values())
+			{
+				Set<String> reps = new HashSet<String>();
+				if (getTeam().equals(agent.team) && agent.role != null && agent.position != null && agent.role.equals("Repairer"))
+					reps.add(agent.position);
+
+				if (!reps.isEmpty())
+				{
+					LinkedList<String> path = graph.shortestPath(position, (id) -> reps.contains(id));
+
+					if (path == null || path.size() <= 1)
+						return rechargeAction();
+					else
+						return gotoGreedy(path.pop());
+				}
+
+				// TODO can probably do something smarter, like hold territory?
+				return rechargeAction();
+			}
+		}
+
 		// find enemy agents to inspect
 		int known = 0; // keep track of total inspected
 		Set<String> targets = new HashSet<String>();
