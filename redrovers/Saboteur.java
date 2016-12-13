@@ -18,7 +18,6 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -58,10 +57,10 @@ public class Saboteur extends RedAgent
 	
 	Action think()
 	{
-		if (wrongRole()) return MarsUtil.skipAction();
+		if (wrongRole()) return skipAction();
 
 		if(energy == 0){
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 
 		if(goalAgent != null){
@@ -75,18 +74,18 @@ public class Saboteur extends RedAgent
 			if (path == null)
 			{
 				goalAgent = null;
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			if(path.size() == 0){
 				if(energy < 2){
-					return MarsUtil.rechargeAction();
+					return rechargeAction();
 				}
 				else {
 					path = null;
 					String name = goalAgent.name;
 					// TODO somehow we can get here even when we know goalAgent has 0 health
 					goalAgent = null;
-					return MarsUtil.attackAction(name);
+					return attackAction(name);
 				}
 			}
 			else{
@@ -95,9 +94,9 @@ public class Saboteur extends RedAgent
 				int weight = graph.edgeWeight(position, next);
 				if(energy < weight){
 					path.addFirst(next);
-					return MarsUtil.rechargeAction();
+					return rechargeAction();
 				}
-				return MarsUtil.gotoAction(next);
+				return gotoAction(next);
 			}
 		}
 		
@@ -187,6 +186,7 @@ public class Saboteur extends RedAgent
 		if(goalAgent == null){
 			path = graph.explore(position);
 			goalAgent = null;
+			// TODO path might be null here
 			System.out.println("path size is: " + path.size());
 		}
 		if(path != null && path.size() != 0){
@@ -194,16 +194,16 @@ public class Saboteur extends RedAgent
 			int weight = graph.edgeWeight(position, next);
 			if(energy < weight){
 				path.addFirst(next);
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			if(path.size() == 0){
 				path = null;
 			}
-			return MarsUtil.gotoAction(next);
+			return gotoAction(next);
 		}
 		else if(goalAgent != null && path.size() == 0){
 			if(energy < 2){
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			else {
 				path = null;
@@ -211,14 +211,14 @@ public class Saboteur extends RedAgent
 				String name = goalAgent.name;
 				goalAgent = null;
 				// TODO somehow we can get here even when we know goalAgent has 0 health
-				return MarsUtil.attackAction(name);
+				return attackAction(name);
 			}
 		}
 		else if(goalAgent == null && path.size() == 0){
 			path = null;
-			return MarsUtil.surveyAction();
+			return surveyAction();
 		}
 
-		return MarsUtil.skipAction();
+		return skipAction();
 	}
 }

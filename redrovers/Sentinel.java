@@ -1,7 +1,6 @@
 package redrovers;
 import eis.iilang.Action;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 public class Sentinel extends RedAgent
 {
@@ -12,10 +11,10 @@ public class Sentinel extends RedAgent
 
 	Action think()
 	{
-		if (wrongRole()) return MarsUtil.skipAction();
+		if (wrongRole()) return skipAction();
 
 		// TODO logic
 
-		return MarsUtil.skipAction();
+		return skipAction();
 	}
 }

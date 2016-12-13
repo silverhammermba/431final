@@ -36,6 +36,7 @@ public class Graph
 		public int distance;
 		public Node pred;
 
+		// TODO handle color
 		public Node(String id)
 		{
 			this.id = id;
@@ -389,13 +390,7 @@ public class Graph
 	// get node with the given id (possibly creating it first)
 	private Node getNode(String n1)
 	{
-		if (n1 == null)
-		{
-			System.err.println("Attempt to add null node");
-			for (StackTraceElement tr : Thread.currentThread().getStackTrace())
-				System.err.println(tr);
-			System.exit(1);
-		}
+		if (n1 == null) throw new RuntimeException("Attempt to add null node");
 		if (nodes.containsKey(n1)) return nodes.get(n1);
 		nodes.put(n1, new Node(n1));
 		return nodes.get(n1);
