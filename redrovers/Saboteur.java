@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 import apltk.interpreter.data.Belief;
@@ -86,10 +87,12 @@ public class Saboteur extends RedAgent
 				LinkedList<String> l = graph.explore(position);
 				if(l != null && l.size() != 0){
 					String n = l.removeFirst();
+					
 					return gotoGreedy(n);
 				}
 				else{
-					return MarsUtil.skipAction();
+					List<String> nodes = graph.nodesAtRange(position, 1);
+					return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 				}
 			}
 			if(path.size() == 0){
@@ -235,6 +238,18 @@ public class Saboteur extends RedAgent
 			if(path.size() == 0){
 				path = null;
 			}
+			for(OtherAgent agent: agents.values()){
+				if(agent.team.equals(this.getTeam())){
+					Action doing = agent.nextAction;
+					if(doing.getName().equals("goto")){
+						String node = doing.getParameters().get(0).toString();
+						if(node.equals(next)&& agent.name.compareTo(this.getName()) < 0){
+							List<String> nodes = graph.nodesAtRange(position, 1);
+							return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+						}
+					}
+				}
+			}
 			return gotoAction(next);
 		}
 		else if(goalAgent != null && path.size() == 0 && goalAgent.health != 0){
@@ -246,7 +261,7 @@ public class Saboteur extends RedAgent
 				System.out.println("Attacking " + goalAgent + " with health of " + goalAgent.health);
 				String name = goalAgent.name;
 				goalAgent = null;
-				// TODO somehow we can get here even when we know goalAgent has 0 health
+				
 				return attackAction(name);
 			}
 		}
@@ -255,6 +270,7 @@ public class Saboteur extends RedAgent
 			return surveyAction();
 		}
 
-		return skipAction();
+		List<String> nodes = graph.nodesAtRange(position, 1);
+		return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 	}
 }

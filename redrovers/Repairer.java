@@ -19,6 +19,7 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
+import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -76,8 +77,15 @@ public class Repairer extends RedAgent
 			if(path == null){
 				goalAgent = null;
 				LinkedList<String> l = graph.explore(position);
-				String n = l.removeFirst();
-				return gotoGreedy(n);
+				if(l != null && l.size() != 0){
+					String n = l.removeFirst();
+					
+					return gotoGreedy(n);
+				}
+				else{
+					List<String> nodes = graph.nodesAtRange(position, 1);
+					return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+				}
 			}
 			//if already on the node with the damaged agent
 			if(path.size() == 0){
@@ -95,6 +103,18 @@ public class Repairer extends RedAgent
 				path = graph.shortestPath(position, goalAgent.position);
 				String next = path.removeFirst();
 				int weight = graph.edgeWeight(position, next);
+				for(OtherAgent agent: agents.values()){
+					if(agent.team.equals(this.getTeam()) && agent.role.equals("Repairer")){
+						Action doing = agent.nextAction;
+						if(doing.getName().equals("goto")){
+							String node = doing.getParameters().get(0).toString();
+							if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
+								List<String> nodes = graph.nodesAtRange(position, 1);
+								return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+							}
+						}
+					}
+				}
 				return gotoGreedy(next);
 			}
 		}
@@ -125,7 +145,7 @@ public class Repairer extends RedAgent
 				continue;
 			}
 			if(agent.team.equals(this.getTeam())){
-				if((agent.role.equals("Explorer") || agent.role.equals("Repairer")) && agent.health < agent.maxHealth){
+				if((agent.role.equals("Explorer") || agent.role.equals("Repairer") || agent.role.equals("Saboteur")) && agent.health < agent.maxHealth){
 					priority.add(agent);
 				}
 				else if(agent.health != null && agent.health == 0){
@@ -201,6 +221,18 @@ public class Repairer extends RedAgent
 			if(path.size() == 0){
 				path = null;
 			}
+			for(OtherAgent agent: agents.values()){
+				if(agent.team.equals(this.getTeam())){
+					Action doing = agent.nextAction;
+					if(doing.getName().equals("goto")){
+						String node = doing.getParameters().get(0).toString();
+						if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
+							List<String> nodes = graph.nodesAtRange(position, 1);
+							return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+						}
+					}
+				}
+			}
 			return gotoAction(next);
 		}
 		else if(goalAgent != null && path.size() == 0){
@@ -224,6 +256,7 @@ public class Repairer extends RedAgent
 			return surveyAction();
 		}
 
-		return skipAction();
+		List<String> nodes = graph.nodesAtRange(position, 1);
+		return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 	}
 }
