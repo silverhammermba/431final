@@ -280,6 +280,15 @@ public abstract class RedAgent extends Agent
 			case "money":
 				money = Integer.parseInt(params.get(0));
 				break;
+			case "nextAction":
+				sender.step = Integer.parseInt(params.get(1));
+
+				LinkedList<Parameter> aparams = new LinkedList<Parameter>();
+				for (String param : params.subList(2, params.size()))
+					aparams.add(new Identifier(param));
+
+				sender.nextAction = new Action(params.get(0), aparams);
+				break;
 			case "position":
 				String pos = params.get(0);
 				// we will at least get visibleEdge beliefs for this pos
@@ -395,10 +404,7 @@ public abstract class RedAgent extends Agent
 		str += "† " + strength + "\n";
 		str += "pos " + position + "\n";
 		if (!prevActions.isEmpty())
-		{
-
 			str += prevActions.get(prevActions.size() - 1) + "\n";
-		}
 
 
 		if (!agents.isEmpty())
