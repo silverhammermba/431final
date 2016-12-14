@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+//import Graph.Node;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
@@ -153,6 +154,9 @@ public abstract class RedAgent extends Agent
 	{
 		for (OtherAgent agent : agents.values())
 			agent.position = null;
+		for (Graph.Node node: graph.nodes.values()){
+			node.team = null;
+		}
 	}
 
 	// store all of our own percepts in fields (using handleBelief)
@@ -403,10 +407,10 @@ public abstract class RedAgent extends Agent
 	{
 		String str = "";
 		str += getName() + " (" + getTeam() + ") - " + role + "\n";
-		str += "❤ " + health + "/" + maxHealth + "\n";
-		str += "⚡ " + energy + "/" + maxEnergy + "\n";
-		str += "→ " + visRange + "\n";
-		str += "† " + strength + "\n";
+		str += "health " + health + "/" + maxHealth + "\n";
+		str += "energy " + energy + "/" + maxEnergy + "\n";
+		str += "vis " + visRange + "\n";
+		str += "str " + strength + "\n";
 		str += "pos " + position + "\n";
 		if (!prevActions.isEmpty())
 			str += prevActions.get(prevActions.size() - 1) + "\n";
@@ -796,4 +800,5 @@ public abstract class RedAgent extends Agent
 		broadcastBelief(actionToBelief(action));
 		return action;
 	}
+	
 }

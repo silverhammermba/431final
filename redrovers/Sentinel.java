@@ -19,6 +19,7 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
+import massim.javaagents.agents.MarsUtil;
 
 
 public class Sentinel extends RedAgent
@@ -235,8 +236,24 @@ public class Sentinel extends RedAgent
 			return surveyAction();
 		}
 
-		return skipAction();
+			LinkedList<String> n = graph.territory(this.position, this);
+			if(n == null){
+				List<String> nodes = graph.nodesAtRange(position, 1);
+				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			}
+			else if(n.size() == 0){
+				return MarsUtil.rechargeAction();
+			}
+			return gotoGreedy(n.removeFirst());
 	}
-	return skipAction();
+		LinkedList<String> n = graph.territory(this.position, this);
+		if(n == null){
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+		}
+		else if(n.size() == 0){
+			return MarsUtil.rechargeAction();
+		}
+		return gotoGreedy(n.removeFirst());
 }
 }

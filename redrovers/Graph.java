@@ -25,7 +25,7 @@ public class Graph
 	/* A node has an id, value, and a map from IDs to edges. Also a visisted
 	 * flag but that's a bit of hack that we need to think about.
 	 */
-	private class Node
+	 class Node
 	{
 		public final String id;
 		public final Map<String, Edge> neighbors;
@@ -122,7 +122,7 @@ public class Graph
 	public Integer total_verts;
 	public Integer total_edges;
 	// nodes (which contain the edges)
-	private Map<String, Node> nodes;
+	protected Map<String, Node> nodes;
 
 	/**
 	 * Create a graph of unknown size with no nodes or edges.
@@ -531,5 +531,53 @@ public class Graph
 
 		// no path to eid
 		return null;
+	}
+	
+	public LinkedList<String> territory(String pos, RedAgent agent){
+		Node max = null;
+		LinkedList<String> l = null;
+		for(Node node: nodes.values()){
+			if(node.team != null && node.team.equals(agent.getTeam())){
+				continue;
+			}
+			if(max == null && node.value != null){
+				l = shortestPath(pos, node.id);
+				if(l != null){
+					max = node;
+				}
+			}
+			else if(max != null && node.value != null && node.value > max.value){
+				l = shortestPath(pos, node.id);
+				if(l != null){
+					max = node;
+				}
+			}
+		}
+		if(max == null){
+			return null;
+		}
+		else if(nodes.get(pos).value != null && nodes.get(pos).value >= max.value){
+			int a = 0;
+			int b = 0;
+			String name = null;
+			for(OtherAgent ag: agent.agents.values()){
+				if(ag.team.equals(agent.getTeam()) && ag.position.equals(pos)){
+					if(ag.team.equals(agent.getTeam())){
+						a += 1;
+						if(name == null || (name != null && name.compareTo(ag.name) < 0)){
+							name = ag.name;
+						}
+					}
+					else{
+						b += 1;
+					}
+				}
+			}
+			if(a > b && name.compareTo(agent.getName()) < 0){
+				return shortestPath(pos, max.id);
+			}
+			return new LinkedList<String>();
+		}
+		return shortestPath(pos, max.id);
 	}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import massim.javaagents.Agent;
+import massim.javaagents.agents.MarsUtil;
 
 public class Inspector extends RedAgent
 {
@@ -66,7 +67,15 @@ public class Inspector extends RedAgent
 		if (known == teamSize)
 		{
 			// TODO maybe keep inspecting to find out health? secure territory?
-			return skipAction();
+			LinkedList<String> n = graph.territory(this.position, this);
+			if(n == null){
+				List<String> nodes = graph.nodesAtRange(position, 1);
+				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			}
+			else if(n.size() == 0){
+				return MarsUtil.rechargeAction();
+			}
+			return gotoGreedy(n.removeFirst());
 		}
 
 		LinkedList<String> path;
@@ -92,8 +101,15 @@ public class Inspector extends RedAgent
 		if (path == null)
 		{
 			// TODO we really should be hunting
-			List<String> nodes = graph.nodesAtRange(position, 1);
-			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			LinkedList<String> n = graph.territory(this.position, this);
+			if(n == null){
+				List<String> nodes = graph.nodesAtRange(position, 1);
+				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			}
+			else if(n.size() == 0){
+				return MarsUtil.rechargeAction();
+			}
+			return gotoGreedy(n.removeFirst());
 		}
 		if (path.isEmpty())
 		{
