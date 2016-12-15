@@ -23,6 +23,7 @@ public class OtherAgent
 	public Integer strength;
 	public Action nextAction;
 	public Integer actionStep;
+	public String goal;
 
 	public OtherAgent(String name, String team)
 	{
