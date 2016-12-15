@@ -111,13 +111,24 @@ public class Repairer extends RedAgent
 	}
 	
 	
+	OtherAgent getRepairer(){
+		for(OtherAgent agent: agents.values()){
+			if(agent.team.equals(this.getTeam()) && agent.role != null && agent.role.equals("Repairer")){
+				return agent;
+			}
+		}
+		return null;
+	}
 	Action findGoal(){
-		goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && agent.knownDamaged() && ("Explorer".equals(agent.role) || "Repairer".equals(agent.role) || "Saboteur".equals(agent.role)));
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && agent.health != null && agent.health == 0);
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && agent.knownDamaged());
+		OtherAgent repairer = getRepairer();
+		goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.health != null && agent.health == 0 && ("Explorer".equals(agent.role) || "Repairer".equals(agent.role) || "Saboteur".equals(agent.role)));
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.health != null && agent.health == 0);
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.knownDamaged());
 
-		if (goalAgent != null)
+		if (goalAgent != null){
+			setGoal(goalAgent.position);
 			path = graph.shortestPath(position, goalAgent.position);
+		}
 		else
 		{
 			path = graph.explore(position);
@@ -167,7 +178,7 @@ public class Repairer extends RedAgent
 				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 			}
 			else if(n.size() == 0){
-				return rechargeAction();
+				return parryAction();
 			}
 			return gotoGreedy(n.removeFirst());
 		}
@@ -182,7 +193,7 @@ public class Repairer extends RedAgent
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 		}
 		else if(n.size() == 0){
-			return rechargeAction();
+			return parryAction();
 		}
 		return gotoGreedy(n.removeFirst());
 	}

@@ -61,7 +61,7 @@ public class Saboteur extends RedAgent
 		if(health == 0){
 			LinkedList<String> p = pathToAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
 			
-			if(path != null && path.size() == 0){
+			if(path != null && (path.size() == 1 || path.size() == 0)){
 				return skipAction();
 			}
 			else if(path == null){
@@ -131,12 +131,12 @@ public class Saboteur extends RedAgent
 	}
 	Action findGoal(){
 		List<OtherAgent> healthy = new ArrayList<OtherAgent>();
-		List<OtherAgent> damaged = new ArrayList<OtherAgent>();
+		List<OtherAgent> old = new ArrayList<OtherAgent>();
 		List<OtherAgent> priority = new ArrayList<OtherAgent>();
 		List<OtherAgent> here = new ArrayList<OtherAgent>();
 		for(OtherAgent agent : agents.values()){
 			if(!agent.team.equals(this.getTeam())){
-				if(agent.position != null && agent.position.equals(position)){
+				if(agent.position != null && agent.position.equals(position) && agent.positionAge != null && agent.positionAge == 0){
 					Action last = null;
 					if(prevActions.size() != 0){
 						last = prevActions.get(prevActions.size() - 1);
@@ -152,16 +152,17 @@ public class Saboteur extends RedAgent
 			if(agent.role != null && !agent.team.equals(this.getTeam())){
 				
 				if(agent.role.equals("Repairer") || agent.role.equals("Explorer")){
-					if(agent.health != null && agent.health != 0){
+					if(agent.health != null && agent.health != 0 ){
 						priority.add(agent);
 					}
 				}
-				else if(agent.health == agent.maxHealth){
+				else if(agent.healthAge >= 10){
+					old.add(agent);
+				}
+				else if(agent.health != 0 && agent.healthAge != null && agent.healthAge < 10){
 					healthy.add(agent);
 				}
-				else if(agent.health < agent.maxHealth){
-					damaged.add(agent);
-				}
+
 			}
 		}
 		if(here.size() != 0){
@@ -184,23 +185,7 @@ public class Saboteur extends RedAgent
 			path = closest;
 			goalAgent = goal;
 		}
-		if(path == null && damaged.size() != 0){
-			LinkedList<String> closest = new LinkedList<String>();
-			OtherAgent goal = null;
-			for(OtherAgent agent : damaged){
-				LinkedList<String> temp = graph.shortestPath(position, agent.position);
-				if(temp != null && closest.size() == 0){
-					closest = graph.shortestPath(position, agent.position);
-					goal = agent;
-				}
-				else if(temp != null && temp.size() < closest.size()){
-					closest = temp;
-					goal = agent;
-				}
-			}
-			path = closest;
-			goalAgent = goal;
-		}
+
 		if(path == null && healthy.size() != 0){
 			LinkedList<String> closest = new LinkedList<String>();
 			OtherAgent goal = null;
@@ -218,15 +203,42 @@ public class Saboteur extends RedAgent
 			path = closest;
 			goalAgent = goal;
 		}
+
+		if(path == null && old.size() != 0){
+			LinkedList<String> closest = new LinkedList<String>();
+			OtherAgent goal = null;
+			for(OtherAgent agent : old){
+				LinkedList<String> temp = graph.shortestPath(position, agent.position);
+				if(temp != null && closest.size() == 0){
+					closest = graph.shortestPath(position, agent.position);
+					goal = agent;
+				}
+				if(temp != null && temp.size() < closest.size()){
+					closest = temp;
+					goal = agent;
+				}
+			}
+			path = closest;
+			goalAgent = goal;
+		}
 		if(goalAgent == null){
 			path = graph.explore(position);
 			goalAgent = null;
-			// TODO path might be null here
 			if(path == null){
-				return skipAction();
+
+				LinkedList<String> n = graph.territory(this.position, this);
+				if(n == null){
+					List<String> nodes = graph.nodesAtRange(position, 1);
+					return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+				}
+				else if(n.size() == 0){
+					return parryGreedy();
+				}
+				return gotoGreedy(n.removeFirst());
+
 			}
-			System.out.println("path size is: " + path.size());
 		}
+
 		if(path != null && path.size() != 0){
 			String next = path.removeFirst();
 			int weight = graph.edgeWeight(position, next);
@@ -251,24 +263,12 @@ public class Saboteur extends RedAgent
 			}
 			return gotoAction(next);
 		}
-		else if(goalAgent != null && path.size() == 0 && goalAgent.health != 0){
-			if(energy < 2){
-				return rechargeAction();
-			}
-			else {
-				path = null;
-				System.out.println("Attacking " + goalAgent + " with health of " + goalAgent.health);
-				String name = goalAgent.name;
-				goalAgent = null;
-				
-				return attackAction(name);
-			}
-		}
+
 		else if(goalAgent == null && path.size() == 0){
 			path = null;
 			return surveyAction();
 		}
-
+		goalAgent = null;
 		LinkedList<String> n = graph.territory(this.position, this);
 		if(n == null){
 			List<String> nodes = graph.nodesAtRange(position, 1);

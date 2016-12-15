@@ -318,7 +318,7 @@ public class Graph
 		if (path == null) return null;
 
 		// (arbitrarily) pick one agent that that path leads to
-		for (OtherAgent ag : agent.agents.values())
+		for (OtherAgent ag : ags)
 		{
 			if (path.isEmpty())
 			{
@@ -620,7 +620,7 @@ public class Graph
 					}
 				}
 			}
-			if(a > b && name.compareTo(agent.getName()) < 0){
+			if((a > b || a + b > 4) && name.compareTo(agent.getName()) < 0){
 				System.out.println("agent " + agent.getName() + " is leaving");
 				return shortestPath(pos, max.id);
 			}
