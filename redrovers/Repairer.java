@@ -126,7 +126,7 @@ public class Repairer extends RedAgent
 		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.knownDamaged());
 
 		if (goalAgent != null){
-			broadcastGoal(goalAgent.position);
+			setGoal(goalAgent.position);
 			path = graph.shortestPath(position, goalAgent.position);
 		}
 		else
