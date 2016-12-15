@@ -19,27 +19,26 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
-
+import massim.javaagents.agents.MarsUtil;
 
 public class Sentinel extends RedAgent
 {
 	private OtherAgent goalAgent;	
 	private LinkedList<String> path;
-	public Sentinel(String name, String team)
 	
+	public Sentinel(String name, String team)
 	{
 		super(name,team);
 		goalAgent = null;
 	}
 
-	
-	LinkedList<String> pathToDamagedAgent(Function<OtherAgent, Boolean> test)
+	LinkedList<String> pathToSentAgent(Function<OtherAgent, Boolean> test)
 	{
 		Set<String> pos = new HashSet<String>();
 		for (OtherAgent agent : agents.values())
 		{
-			if (!agent.team.equals(getTeam())) continue;
-			if (agent.knownDamaged() && test.apply(agent))
+			if (agent.team.equals(getTeam())) continue;
+			if (!agent.knownDamaged() && test.apply(agent))
 				pos.add(agent.position);
 		}
 
@@ -48,10 +47,25 @@ public class Sentinel extends RedAgent
 		return graph.shortestPath(position, (id) -> pos.contains(id));
 	}
 	
-
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
+		
+		if(energy == 0)
+		{
+			return rechargeAction();
+		}
+		
+		if(health == 0)
+		{
+			LinkedList<String> p = pathToSentAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
+			
+			if(p == null || p.size() == 0)
+			{
+				return MarsUtil.skipAction();
+			}
+			return gotoGreedy(p.pop());
+		}
 		
 		if (graph.unsurveyedEdges(position))
 		{
@@ -64,15 +78,21 @@ public class Sentinel extends RedAgent
 			return gotoGreedy(path.pop());
 		}
 		
-		if(energy == 0){
-			return rechargeAction();
+		path = pathToSentAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Saboteur"));
+		if (path != null)
+		{
+			if(path.size()==0)
+			{
+				return parryAction();
+			}
 		}
-
+		
 		if(goalAgent != null){
 			System.out.println("my goal is this agent: " + goalAgent);
 			checkGoal();
 			
 		}
+		
 		if(goalAgent != null && goalAgent.role != null){
 			System.out.println("In Goal Method");
 			int health = goalAgent.health;
