@@ -10,6 +10,8 @@ import massim.javaagents.agents.MarsUtil;
 
 public class Inspector extends RedAgent
 {
+	LinkedList<String> seekPath;
+
 	public Inspector(String name, String team)
 	{
 		super(name,team);
@@ -21,25 +23,17 @@ public class Inspector extends RedAgent
 
 		if (health == 0)
 		{
-			for (OtherAgent agent : agents.values())
-			{
-				Set<String> reps = new HashSet<String>();
-				if (getTeam().equals(agent.team) && agent.role != null && agent.position != null && agent.role.equals("Repairer"))
-					reps.add(agent.position);
+			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
 
-				if (!reps.isEmpty())
-				{
-					LinkedList<String> path = graph.shortestPath(position, (id) -> reps.contains(id));
-
-					if (path == null || path.size() <= 1)
-						return rechargeAction();
-					else
-						return gotoGreedy(path.pop());
-				}
-
-				// TODO can probably do something smarter, like hold territory?
+			if (agent == null)
 				return rechargeAction();
-			}
+
+			LinkedList<String> path = graph.shortestPath(position, agent.position);
+
+			if (path != null && path.size() > 1)
+				return gotoGreedy(path.pop());
+
+			return rechargeAction();
 		}
 
 		// find enemy agents to inspect
