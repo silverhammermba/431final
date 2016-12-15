@@ -297,6 +297,7 @@ public class Graph
 	 */
 	public OtherAgent nearestAgent(RedAgent agent, Function<OtherAgent, Boolean> test)
 	{
+		// get a list of OtherAgents satisfying the test
 		List<OtherAgent> ags = new ArrayList<OtherAgent>();
 		for (OtherAgent ag : agent.agents.values())
 		{
@@ -308,6 +309,7 @@ public class Graph
 
 		if (ags.isEmpty()) return null;
 
+		// get the shortest path to one of those agents
 		LinkedList<String> path = shortestPath(agent.position, (id) -> {
 			for (OtherAgent ag : ags) if (ag.position.equals(id)) return true;
 			return false;
@@ -315,6 +317,7 @@ public class Graph
 
 		if (path == null) return null;
 
+		// (arbitrarily) pick one agent that that path leads to
 		for (OtherAgent ag : agent.agents.values())
 		{
 			if (path.isEmpty())
@@ -327,6 +330,7 @@ public class Graph
 			}
 		}
 
+		// XXX shouldn't get here
 		throw new RuntimeException("failed to find nearest agent");
 	}
 
