@@ -20,6 +20,9 @@ public class Inspector extends RedAgent
 	{
 		if (wrongRole()) return skipAction();
 
+		LinkedList<String> path;
+
+		// if disabled, try to get to a repairer
 		if (health == 0)
 		{
 			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
@@ -27,7 +30,7 @@ public class Inspector extends RedAgent
 			if (agent == null)
 				return rechargeAction();
 
-			LinkedList<String> path = graph.shortestPath(position, agent.position);
+			path = graph.shortestPath(position, agent.position);
 
 			if (path != null && path.size() > 1)
 				return gotoGreedy(path.pop());
@@ -35,87 +38,86 @@ public class Inspector extends RedAgent
 			return rechargeAction();
 		}
 
-		// find enemy agents to inspect
-		int known = 0; // keep track of total inspected
-		Set<String> targets = new HashSet<String>();
+		// just go somewhere if we're at the same place as the other Inspector
 		for (OtherAgent agent : agents.values())
 		{
-			// same team, don't care
-			if (agent.team.equals(getTeam())) continue;
-			// role known, don't care
-			if (agent.role != null)
+			if (getTeam().equals(agent.team) && role.equals(agent.role) && position.equals(agent.position) && getName().compareTo(agent.name) < 0)
 			{
-				++known;
-				continue;
+				path = graph.shortestPath(position, (id) -> !id.equals(position));
+				if (path == null || path.isEmpty()) return surveyGreedy();
+				return gotoGreedy(path.pop());
 			}
-			// position unknown, don't care (how do we find them?)
-			if (agent.position == null) continue;
-
-			targets.add(agent.position);
-			// if they are right here, it's simple
-			if (position.equals(agent.position)) return inspectGreedy();
 		}
 
-		// if we've inspected every member of the enemy team
-		if (known == teamSize)
+		// get the other Inspector's goal
+		String tempGoal = null;
+		for (OtherAgent agent : agents.values())
 		{
-			OtherAgent agent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && a.healthAge > 10);
-
-			if (agent != null)
+			if (getTeam().equals(agent.team) && role.equals(agent.role))
 			{
-				LinkedList<String> path = graph.shortestPath(position, agent.position);
+				tempGoal = agent.goal;
+				break;
 			}
-
-			// TODO maybe keep inspecting to find out health? secure territory?
-			LinkedList<String> n = graph.territory(this.position, this);
-			if(n == null){
-				List<String> nodes = graph.nodesAtRange(position, 1);
-				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
-			}
-			else if(n.size() == 0){
-				return rechargeAction();
-			}
-			return gotoGreedy(n.removeFirst());
 		}
+		final String otherGoal = tempGoal;
 
-		LinkedList<String> path;
+		// find an agent to inspect whose role we don't know
+		OtherAgent agent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && a.role == null && !a.position.equals(otherGoal) && (a.positionAge == 0 || !position.equals(a.position)));
 
-		if (targets.isEmpty())
+		if (agent != null)
 		{
-			// TODO really should be hunting the map for agents, but this is close
-			path = graph.explore(position);
+			path = graph.shortestPath(position, agent.position);
 
-			if (path == null)
-			{
-				// TODO okay, here we really should be hunting
-				List<String> nodes = graph.nodesAtRange(position, 1);
-				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
-			}
-			if (path.isEmpty()) return surveyGreedy();
+			if (path.isEmpty()) return inspectGreedy();
+
+			setGoal(agent.position);
 			return gotoGreedy(path.pop());
 		}
 
-		path = graph.shortestPath(position, (id) -> targets.contains(id));
+		// try to inspect an agent with outdated health info
+		agent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.healthAge == null || a.healthAge > 10) && !a.position.equals(otherGoal) && (a.positionAge == 0 || !position.equals(a.position)));
 
-		// no path to any un-inspected agent
+		if (agent != null)
+		{
+			path = graph.shortestPath(position, agent.position);
+			if (path.isEmpty()) return inspectGreedy();
+
+			setGoal(agent.position);
+			return gotoGreedy(path.pop());
+		}
+
+		// try to explore the graph
+		Set<String> others = new HashSet<String>();
+		for (OtherAgent a : agents.values())
+		{
+			if (a.goal != null) others.add(a.goal);
+		}
+		path = graph.shortestPath(position, (id) -> (graph.unknownEdges(id) || graph.unsurveyedEdges(id)) && !others.contains(id));
+
+		if (path != null)
+		{
+			if (path.size() == 0)
+			{
+				setGoal(null);
+				return surveyGreedy();
+			}
+
+			setGoal(path.get(path.size() - 1));
+			return gotoGreedy(path.pop());
+		}
+
+		// try to hold territory
+		path = graph.territory(this);
+
 		if (path == null)
 		{
-			// TODO we really should be hunting
-			LinkedList<String> n = graph.territory(this.position, this);
-			if(n == null){
-				List<String> nodes = graph.nodesAtRange(position, 1);
-				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
-			}
-			else if(n.size() == 0){
-				return rechargeAction();
-			}
-			return gotoGreedy(n.removeFirst());
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			String n = nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size()));
+			return gotoGreedy(n);
 		}
-		if (path.isEmpty())
-		{
-			System.err.println("Somehow already at un-inspected agent!?");
-			return inspectGreedy();
-		}
+
+		if (path.size() == 0) return rechargeAction();
+
 		return gotoGreedy(path.pop());
 	}
 }

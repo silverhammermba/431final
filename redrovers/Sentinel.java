@@ -84,6 +84,7 @@ public class Sentinel extends RedAgent
 		 */
 		OtherAgent agent = graph.nearestAgent(this, (ag) -> !getTeam().equals(ag.team) && "Saboteur".equals(ag.role));
 		if (agent!=null)
+		{
 			path = graph.shortestPath(position, agent.position);
 
 		if (path.size() <= 1)
@@ -98,6 +99,7 @@ public class Sentinel extends RedAgent
 			}
 			LinkedList<String> p1 = graph.shortestPath(position, (id) -> !saboteurPositions.contains(id));
 			return gotoGreedy(p1.pop());
+		}
 		}
 		
 		if(goalAgent != null){
@@ -268,7 +270,7 @@ public class Sentinel extends RedAgent
 			return surveyAction();
 		}
 
-			LinkedList<String> n = graph.territory(this.position, this);
+			LinkedList<String> n = graph.territory(this);
 			if(n == null){
 				List<String> nodes = graph.nodesAtRange(position, 1);
 				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
@@ -278,7 +280,7 @@ public class Sentinel extends RedAgent
 			}
 			return gotoGreedy(n.removeFirst());
 	}
-		LinkedList<String> n = graph.territory(this.position, this);
+		LinkedList<String> n = graph.territory(this);
 		if(n == null){
 			List<String> nodes = graph.nodesAtRange(position, 1);
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));

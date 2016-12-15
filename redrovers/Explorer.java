@@ -104,8 +104,7 @@ public class Explorer extends RedAgent
 			return surveyGreedy();
 		}
 		
-		
-		LinkedList<String> n = graph.territory(this.position, this);
+		LinkedList<String> n = graph.territory(this);
 		if(n == null){
 			List<String> nodes = graph.nodesAtRange(position, 1);
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));

@@ -289,7 +289,7 @@ public class Saboteur extends RedAgent
 			goalAgent = null;
 			if(path == null){
 
-				LinkedList<String> n = graph.territory(this.position, this);
+				LinkedList<String> n = graph.territory(this);
 				if(n == null){
 					List<String> nodes = graph.nodesAtRange(position, 1);
 					return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
@@ -333,7 +333,7 @@ public class Saboteur extends RedAgent
 			return surveyAction();
 		}
 		goalAgent = null;
-		LinkedList<String> n = graph.territory(this.position, this);
+		LinkedList<String> n = graph.territory(this);
 		if(n == null){
 			List<String> nodes = graph.nodesAtRange(position, 1);
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
