@@ -532,7 +532,7 @@ public class Graph
 		// no path to eid
 		return null;
 	}
-	
+
 	public LinkedList<String> territory(String pos, RedAgent agent){
 		Node max = null;
 		LinkedList<String> l = null;
