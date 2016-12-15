@@ -61,7 +61,7 @@ public class Saboteur extends RedAgent
 		if(health == 0){
 			LinkedList<String> p = pathToAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
 			
-			if(path != null && path.size() == 0){
+			if(path != null && (path.size() == 1 || path.size() == 0)){
 				return skipAction();
 			}
 			else if(path == null){
