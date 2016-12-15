@@ -72,37 +72,8 @@ public class Explorer extends RedAgent
 		}
 		
 		
-		
-		
 	
-
-		//go to other place to probe
-		String pos;
-		
-		/*
-		for (OtherAgent agent : agents.values()){
-			if (getName().compareTo(agent.name) == 0){
-				continue;
-			}
-			
-			//if there is another explorer at same node, random move
-			if (getTeam().equals(agent.team) && position.equals(agent.position) && role.equals(agent.role)){
-				//who has more energy go randomly 
-				if((agent.energy == energy && getName().compareTo(agent.name) > 0)
-						|| (agent.energy < energy)){
-					
-					//randomly moving
-					Random random = new Random();
-					List<String> neighborNodes = graph.nodesAtRange(position,1);
-					pos = neighborNodes.get(random.nextInt(neighborNodes.size()));
-					return gotoGreedy(pos);
-			
-				}
-			
-			}
-			
-		}
-		*/
+	
 	
 		this.pathList = null;
 		
@@ -116,8 +87,9 @@ public class Explorer extends RedAgent
 		
 		
 		if(this.pathList != null && this.pathList.size() != 0){
-			this.goal = pathList.get(pathList.size() - 1);
-			System.err.println("goal is " + this.goal);
+			setGoal(pathList.get(pathList.size() - 1));
+		}else{
+			setGoal(null);
 		}
 		
 		
@@ -143,10 +115,6 @@ public class Explorer extends RedAgent
 
 		return gotoGreedy(n.removeFirst());
 
-	
-	
-			
-	
 	}
 		
 	
