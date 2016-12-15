@@ -31,6 +31,21 @@ public class Explorer extends RedAgent
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
+		
+		if (health == 0)
+		{
+			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
+
+			if (agent == null)
+				return rechargeAction();
+
+			LinkedList<String> path = graph.shortestPath(position, agent.position);
+
+			if (path != null && path.size() > 1)
+				return gotoGreedy(path.pop());
+
+			return rechargeAction();
+		}
 
 		/*
 		List<String> nodes;
