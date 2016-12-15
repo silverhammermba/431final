@@ -121,6 +121,19 @@ public class Sentinel extends RedAgent
 		{
 			return gotoGreedy(path.pop());
 		}
-		return skipAction();
+
+		// try to hold territory
+		path = graph.territory(this);
+
+		if (path == null)
+		{
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			String n = nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size()));
+			return gotoGreedy(n);
+		}
+
+		if (path.size() == 0) return rechargeAction();
+
+		return gotoGreedy(path.pop());
 	}
 }
