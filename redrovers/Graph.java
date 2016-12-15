@@ -318,7 +318,7 @@ public class Graph
 		if (path == null) return null;
 
 		// (arbitrarily) pick one agent that that path leads to
-		for (OtherAgent ag : agent.agents.values())
+		for (OtherAgent ag : ags)
 		{
 			if (path.isEmpty())
 			{
