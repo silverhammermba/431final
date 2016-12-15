@@ -620,7 +620,7 @@ public class Graph
 					}
 				}
 			}
-			if(a > b && name.compareTo(agent.getName()) < 0){
+			if((a > b || a + b > 4) && name.compareTo(agent.getName()) < 0){
 				System.out.println("agent " + agent.getName() + " is leaving");
 				return shortestPath(pos, max.id);
 			}

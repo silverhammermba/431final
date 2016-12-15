@@ -49,6 +49,7 @@ public class Sentinel extends RedAgent
 		  */
 		if(health == 0)
 		{
+
 			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
 
 			if (agent == null)
@@ -60,6 +61,7 @@ public class Sentinel extends RedAgent
 				return gotoGreedy(path.pop());
 
 			return rechargeAction();
+
 		}
 					
 		// Survey the adjacent edges
