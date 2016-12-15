@@ -101,6 +101,9 @@ public class Explorer extends RedAgent
 		
 		String pos;
 		for (OtherAgent agent : agents.values()){
+			if (getName().compareTo(agent.name) == 0){
+				continue;
+			}
 			//if there is another explorer at same node, random move
 			if (getTeam().equals(agent.team) && position.equals(agent.position) && role.equals(agent.role)){
 				//who has more energy go randomly 
@@ -124,7 +127,7 @@ public class Explorer extends RedAgent
 
 		this.pathList = graph.shortestPath(position, (id) -> (graph.nodeValue(id) == null));
 		 
-		if(this.pathList != null){
+		if(this.pathList != null && this.pathList.size() != 0){
 			return gotoGreedy(pathList.pop());
 		}
 		
@@ -133,13 +136,14 @@ public class Explorer extends RedAgent
 			return surveyGreedy();
 		}
 		
+		
 		LinkedList<String> n = graph.territory(this.position, this);
 		if(n == null){
 			List<String> nodes = graph.nodesAtRange(position, 1);
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 		}
 		else if(n.size() == 0){
-			return MarsUtil.rechargeAction();
+			return parryGreedy();
 		}
 		return gotoGreedy(n.removeFirst());
 
@@ -151,44 +155,7 @@ public class Explorer extends RedAgent
 		
 
 		
-			/*
-		
-			}else{ //try to goto somewhere according to pathList
-				String pos;
-				for (Map.Entry<String, OtherAgent> agentEntry : agents.entrySet()){
-					//if there is another explorer at same node, random move
-					OtherAgent agent = agentEntry.getValue();
-					if (getTeam().equals(agent.team) && position.equals(agent.position) && role.equals(agent.role)){
-						//who has more energy go randomly 
-						if(agent.energy <= energy){
-							Random random = new Random();
-							List<String> neighborNodes = graph.nodesAtRange(position,1);
-							pos = neighborNodes.get(random.nextInt(neighborNodes.size()));
-
-							if(energy < graph.edgeWeight(position,pos)){ //energy too low to go
-								return rechargeAction();
-							}
-
-							return gotoAction(pos);
-						}
-					}
-				}
-
-				if(pathList != null){ //if there is node to go
-					pos = pathList.get(0);
-					if(energy < graph.edgeWeight(position,pos)){ //energy too low to go
-						return rechargeAction();
-					}else{
-						pathList.remove(0);
-						return gotoAction(pos);
-					}
-				}
-
-			}
-
-		}
-		*/
-		
+			
 	
 	}
 		
