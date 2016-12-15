@@ -17,7 +17,6 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -168,7 +167,7 @@ public class Repairer extends RedAgent
 				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 			}
 			else if(n.size() == 0){
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			return gotoGreedy(n.removeFirst());
 		}
@@ -183,7 +182,7 @@ public class Repairer extends RedAgent
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 		}
 		else if(n.size() == 0){
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 		return gotoGreedy(n.removeFirst());
 	}

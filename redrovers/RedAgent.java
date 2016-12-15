@@ -29,6 +29,9 @@ public abstract class RedAgent extends Agent
 	// copied from team conf
 	protected static final int teamSize = 10;
 
+	// this is used for goal broadcasting
+	protected String goal;
+
 	// fields for storing percept information
 	protected String role;
 	protected int energy;
@@ -299,6 +302,9 @@ public abstract class RedAgent extends Agent
 					aparams.add(new Identifier(param));
 
 				sender.nextAction = new Action(params.get(0), aparams);
+				break;
+			case "goal":
+				sender.goal = params.get(0).equals("null") ? null : params.get(0);
 				break;
 			case "position":
 				String pos = params.get(0);
@@ -658,6 +664,26 @@ public abstract class RedAgent extends Agent
 		if (role.equals(getClass().getSimpleName())) return false;
 		System.err.println(role + " agent is running class " + getClass().getSimpleName());
 		return true;
+	}
+
+	/**
+	 * Update our goal and, if it is a new goal, broadcast it to our team
+	 *
+	 * @param id our new goal (a vertex ID)
+	 */
+	protected void broadcastGoal(String id)
+	{
+		if (goal == null)
+		{
+			if (id == null) return;
+		}
+		else
+		{
+			if (goal.equals(id)) return;
+		}
+
+		goal = id;
+		broadcastBelief(new LogicBelief("goal", id == null ? "null" : id));
 	}
 
 	// convert a belief to an action, adding the current step as a parameter
