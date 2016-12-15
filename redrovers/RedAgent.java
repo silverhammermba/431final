@@ -29,6 +29,9 @@ public abstract class RedAgent extends Agent
 	// copied from team conf
 	protected static final int teamSize = 10;
 
+	// this is used for goal broadcasting
+	protected String goal;
+
 	// fields for storing percept information
 	protected String role;
 	protected int energy;
@@ -663,8 +666,23 @@ public abstract class RedAgent extends Agent
 		return true;
 	}
 
+	/**
+	 * Update our goal and, if it is a new goal, broadcast it to our team
+	 *
+	 * @param id our new goal (a vertex ID)
+	 */
 	protected void broadcastGoal(String id)
 	{
+		if (goal == null)
+		{
+			if (id == null) return;
+		}
+		else
+		{
+			if (goal.equals(id)) return;
+		}
+
+		goal = id;
 		broadcastBelief(new LogicBelief("goal", id == null ? "null" : id));
 	}
 
