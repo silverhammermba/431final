@@ -83,7 +83,7 @@ public class Repairer extends RedAgent
 					if(agent.team.equals(this.getTeam()) && agent.role.equals("Repairer")){
 						Action doing = agent.next(step);
 						if(doing != null && doing.getName().equals("goto")){
-							String node = doing.getParameters().get(0).toString();
+							String node = "" + doing.getParameters().get(0);
 							if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
 								List<String> nodes = graph.nodesAtRange(position, 1);
 								return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
@@ -149,7 +149,7 @@ public class Repairer extends RedAgent
 				if(agent.team.equals(this.getTeam())){
 					Action doing = agent.next(step);
 					if(doing != null && doing.getName().equals("goto")){
-						String node = doing.getParameters().get(0).toString();
+						String node = "" + doing.getParameters().get(0);
 						if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
 							List<String> nodes = graph.nodesAtRange(position, 1);
 							return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));

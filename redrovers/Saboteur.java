@@ -253,7 +253,7 @@ public class Saboteur extends RedAgent
 				if(agent.team.equals(this.getTeam())){
 					Action doing = agent.nextAction;
 					if(doing.getName().equals("goto")){
-						String node = doing.getParameters().get(0).toString();
+						String node = "" + doing.getParameters().get(0);
 						if(node.equals(next)&& agent.name.compareTo(this.getName()) < 0){
 							List<String> nodes = graph.nodesAtRange(position, 1);
 							return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));

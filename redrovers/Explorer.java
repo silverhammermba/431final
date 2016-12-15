@@ -124,6 +124,7 @@ public class Explorer extends RedAgent
 		this.pathList = graph.shortestPath(position, (id) -> (graph.nodeValue(id) == null));
 		 
 		if(this.pathList != null){
+			// TODO pathList might be empty
 			return gotoGreedy(pathList.pop());
 		}
 		
