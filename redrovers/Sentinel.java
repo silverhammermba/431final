@@ -24,7 +24,7 @@ public class Sentinel extends RedAgent
 {
 	private OtherAgent goalAgent;	
 	private LinkedList<String> path;
-	
+
 	public Sentinel(String name, String team)
 	{
 		super(name,team);
@@ -34,19 +34,19 @@ public class Sentinel extends RedAgent
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
-		
+
 		// Agent recharges if its energy drops to zero
 		if(energy == 0)
 		{
 			return rechargeAction();
 		}
-		
+
 		/** 
-		  * If agent's health drops to zero
-		  * Look for the nearest repairer	
-		  * Return the shortest path to the Repairer
-		  * Get Repaired
-		  */
+		 * If agent's health drops to zero
+		 * Look for the nearest repairer	
+		 * Return the shortest path to the Repairer
+		 * Get Repaired
+		 */
 		if(health == 0)
 		{
 
@@ -75,7 +75,7 @@ public class Sentinel extends RedAgent
 		{
 			return gotoGreedy(path.pop());
 		}
-		
+
 		/*
 		 * Agent should parry an attack whenever the enemy's Saboteur launches an attack
 		 * Whenever the saboteur is in close proximity to the Sentinel
@@ -86,19 +86,21 @@ public class Sentinel extends RedAgent
 		{
 			path = graph.shortestPath(position, agent.position);
 
-		if (path.size() <= 1)
-		{
-			Set<String> saboteurPositions = new HashSet<String>();
-			for(OtherAgent ag : agents.values())
+			if (path.size() <= 1)
 			{
-				if(!getTeam().equals(agent.team)&& "Saboteur".equals(agent.role)&& agent.position != null)
+				Set<String> saboteurPositions = new HashSet<String>();
+				for(OtherAgent ag : agents.values())
 				{
-					saboteurPositions.add(agent.position);
+					if(!getTeam().equals(agent.team)&& "Saboteur".equals(agent.role)&& agent.position != null)
+					{
+						saboteurPositions.add(agent.position);
+					}
 				}
+				LinkedList<String> p1 = graph.shortestPath(position, (id) -> !id.equals(position) && !saboteurPositions.contains(id));
+				return gotoGreedy(p1.pop());
 			}
-			LinkedList<String> p1 = graph.shortestPath(position, (id) -> !saboteurPositions.contains(id));
-			return gotoGreedy(p1.pop());
 		}
-		}
+
+		return skipAction();
 	}
 }
