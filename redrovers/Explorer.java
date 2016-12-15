@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import eis.iilang.Action;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -34,7 +33,7 @@ public class Explorer extends RedAgent
 		
 		if (health == 0)
 		{
-			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
+			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Explorer".equals(ag.role));
 
 			if (agent == null)
 				return rechargeAction();
@@ -47,41 +46,6 @@ public class Explorer extends RedAgent
 			return rechargeAction();
 		}
 
-		/*
-		List<String> nodes;
-		for (int i = 0; i <= visRange; ++i)
-		{
-			nodes = graph.nodesAtRange(position,i);
-
-
-			for (String id : nodes)
-			{
-				if (graph.nodeValue(id) == null)
-				{
-					if (energy < 1 + i)
-						return rechargeAction();
-
-					return probeAction(id);
-				}
-			}
-		}
-
-
-		System.err.println("\n\n now go somewhere else\n\n");
-		*/
-
-
-
-
-
-		//this.pathList = graph.explore(position);
-
-		
-		/*
-		if(graph.nodeValue(position) == null){ 
-			return probeGreedy();
-		}
-		*/
 		
 		
 			
@@ -160,16 +124,11 @@ public class Explorer extends RedAgent
 		else if(n.size() == 0){
 			return parryGreedy();
 		}
+
 		return gotoGreedy(n.removeFirst());
 
 	
-
-		
-		
-		
-		
-
-		
+	
 			
 	
 	}

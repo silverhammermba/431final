@@ -315,7 +315,12 @@ public class Graph
 
 		if (path == null) return null;
 
-		return ags.get(0);
+		for (OtherAgent ag : agent.agents.values())
+		{
+			if (ag.position.equals(path.get(path.size() - 1))) return ag;
+		}
+
+		throw new RuntimeException("failed to find nearest agent");
 	}
 
 	/**
