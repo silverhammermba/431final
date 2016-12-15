@@ -70,7 +70,7 @@ public class Saboteur extends RedAgent
 				p = graph.explore(position);
 			}
 			if(p == null || p.size() == 0){
-				return MarsUtil.skipAction();
+				return skipAction();
 			}
 			System.out.println("going to repairer");
 			return gotoGreedy(p.removeFirst());
@@ -274,7 +274,7 @@ public class Saboteur extends RedAgent
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 		}
 		else if(n.size() == 0){
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 		return gotoGreedy(n.removeFirst());
 	}
