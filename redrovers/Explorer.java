@@ -93,6 +93,7 @@ public class Explorer extends RedAgent
 		}
 		
 		
+
 		
 		if(this.pathList != null && this.pathList.size() != 0){
 			return gotoGreedy(pathList.pop());
