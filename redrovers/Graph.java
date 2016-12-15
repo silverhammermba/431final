@@ -288,6 +288,37 @@ public class Graph
 	}
 
 	/**
+	 * Get the nearest OtherAgent satisfying some test
+	 *
+	 * @param agent this agent
+	 * @param test the function test if we might want to go to this agent (only
+	 *             runs for agent with non-null position)
+	 * @return the nearest agent
+	 */
+	public OtherAgent nearestAgent(RedAgent agent, Function<OtherAgent, Boolean> test)
+	{
+		List<OtherAgent> ags = new ArrayList<OtherAgent>();
+		for (OtherAgent ag : agent.agents.values())
+		{
+			if (ag.position != null && test.apply(ag))
+			{
+				ags.add(ag);
+			}
+		}
+
+		if (ags.isEmpty()) return null;
+
+		LinkedList<String> path = shortestPath(agent.position, (id) -> {
+			for (OtherAgent ag : ags) if (ag.position.equals(id)) return true;
+			return false;
+		});
+
+		if (path == null) return null;
+
+		return ags.get(0);
+	}
+
+	/**
 	 * Get the shortest path to any node satisfying some condition.
 	 *
 	 * @param sid the ID of the node the agent is at
