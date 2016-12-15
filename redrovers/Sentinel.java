@@ -49,7 +49,6 @@ public class Sentinel extends RedAgent
 		 */
 		if(health == 0)
 		{
-
 			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
 
 			if (agent == null)
@@ -63,25 +62,26 @@ public class Sentinel extends RedAgent
 			return rechargeAction();
 		}
 
-		// Survey the adjacent edges
-		if (graph.unsurveyedEdges(position))
+		Function<OtherAgent, Boolean> sabCheck = (ag) -> !getTeam().equals(ag.team) && (ag.health == null || ag.health > 0) && (ag.positionAge == 0 || !ag.position.equals(position));
+		int numsab = 0;
+		for (OtherAgent agent : agents.values())
 		{
-			return surveyGreedy();
-		}
-
-		// Explore the graph and goto the unsurveyed edges 
-		LinkedList<String> path = graph.explore(position);
-		if (path != null)
-		{
-			return gotoGreedy(path.pop());
+			if (!getTeam().equals(agent.team) && "Saboteur".equals(agent.role))
+			{
+				if (++numsab == 2)
+				{
+					sabCheck = (ag) -> !getTeam().equals(ag.team) && "Saboteur".equals(ag.role) && (ag.health == null || ag.health > 0) && (ag.positionAge == 0 || !ag.position.equals(position));
+					break;
+				}
+			}
 		}
 
 		/*
 		 * Agent should parry an attack whenever the enemy's Saboteur launches an attack
 		 * Whenever the saboteur is in close proximity to the Sentinel
-		 * Better approach is to move to a new location that does not contain any nearby enemy's saboteurs  
+		 * Better approach is to move to a new location that does not contain any nearby enemy's saboteurs
 		 */
-		OtherAgent agent = graph.nearestAgent(this, (ag) -> !getTeam().equals(ag.team) && "Saboteur".equals(ag.role));
+		OtherAgent agent = graph.nearestAgent(this, sabCheck);
 		if (agent!=null)
 		{
 			path = graph.shortestPath(position, agent.position);
@@ -91,16 +91,36 @@ public class Sentinel extends RedAgent
 				Set<String> saboteurPositions = new HashSet<String>();
 				for(OtherAgent ag : agents.values())
 				{
-					if(!getTeam().equals(agent.team)&& "Saboteur".equals(agent.role)&& agent.position != null)
+					if (sabCheck.apply(ag))
 					{
 						saboteurPositions.add(agent.position);
 					}
 				}
 				LinkedList<String> p1 = graph.shortestPath(position, (id) -> !id.equals(position) && !saboteurPositions.contains(id));
+
+				if (p1 == null)
+				{
+					List<String> nodes = graph.nodesAtRange(position, 1);
+					String n = nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size()));
+					return gotoGreedy(n);
+				}
+
 				return gotoGreedy(p1.pop());
 			}
 		}
 
+		// Survey the adjacent edges
+		if (graph.unsurveyedEdges(position))
+		{
+			return surveyGreedy();
+		}
+
+		// Explore the graph and goto the unsurveyed edges
+		LinkedList<String> path = graph.explore(position);
+		if (path != null)
+		{
+			return gotoGreedy(path.pop());
+		}
 		return skipAction();
 	}
 }
