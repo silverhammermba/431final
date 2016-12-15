@@ -562,18 +562,19 @@ public class Graph
 			String name = null;
 			for(OtherAgent ag: agent.agents.values()){
 				if(ag.team.equals(agent.getTeam()) && ag.position.equals(pos)){
-					if(ag.team.equals(agent.getTeam())){
+					if(ag.team.equals(agent.getTeam()) && ag.health != 0){
 						a += 1;
-						if(name == null || (name != null && name.compareTo(ag.name) < 0)){
+						if(name == null || (name != null && name.compareTo(agent.getName()) < 0)){
 							name = ag.name;
 						}
 					}
-					else{
+					else if(!ag.team.equals(agent.getTeam()) && ag.health != null && ag.health != 0){
 						b += 1;
 					}
 				}
 			}
 			if(a > b && name.compareTo(agent.getName()) < 0){
+				System.out.println("agent " + agent.getName() + " is leaving");
 				return shortestPath(pos, max.id);
 			}
 			return new LinkedList<String>();
