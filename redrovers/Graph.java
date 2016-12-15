@@ -25,7 +25,7 @@ public class Graph
 	/* A node has an id, value, and a map from IDs to edges. Also a visisted
 	 * flag but that's a bit of hack that we need to think about.
 	 */
-	private class Node
+	 class Node
 	{
 		public final String id;
 		public final Map<String, Edge> neighbors;
@@ -122,7 +122,7 @@ public class Graph
 	public Integer total_verts;
 	public Integer total_edges;
 	// nodes (which contain the edges)
-	private Map<String, Node> nodes;
+	protected Map<String, Node> nodes;
 
 	/**
 	 * Create a graph of unknown size with no nodes or edges.
@@ -285,6 +285,28 @@ public class Graph
 	public LinkedList<String> shortestPath(String sid, String eid)
 	{
 		return shortestPath(sid, (id) -> id.equals(eid));
+	}
+
+	/**
+	 * Get the shortest path to an OtherAgent
+	 *
+	 * @param agent this agent
+	 * @param test the function test if we might want to go to this agent (only
+	 *             runs for agent with non-null position)
+	 * @return the path to the nearest agent that satisfies the test
+	 */
+	public LinkedList<String> shortestPathToAgent(RedAgent agent, Function<OtherAgent, Boolean> test)
+	{
+		Set<String> pos = new HashSet<String>();
+		for (OtherAgent ag : agent.agents.values())
+		{
+			if (ag.position != null && test.apply(ag))
+			{
+				pos.add(ag.position);
+			}
+		}
+
+		return shortestPath(agent.position, (id) -> pos.contains(id));
 	}
 
 	/**
@@ -531,5 +553,54 @@ public class Graph
 
 		// no path to eid
 		return null;
+	}
+
+	public LinkedList<String> territory(String pos, RedAgent agent){
+		Node max = null;
+		LinkedList<String> l = null;
+		for(Node node: nodes.values()){
+			if(node.team != null && node.team.equals(agent.getTeam())){
+				continue;
+			}
+			if(max == null && node.value != null){
+				l = shortestPath(pos, node.id);
+				if(l != null){
+					max = node;
+				}
+			}
+			else if(max != null && node.value != null && node.value > max.value){
+				l = shortestPath(pos, node.id);
+				if(l != null){
+					max = node;
+				}
+			}
+		}
+		if(max == null){
+			return null;
+		}
+		else if(nodes.get(pos).value != null && nodes.get(pos).value >= max.value){
+			int a = 0;
+			int b = 0;
+			String name = null;
+			for(OtherAgent ag: agent.agents.values()){
+				if(ag.team.equals(agent.getTeam()) && ag.position.equals(pos)){
+					if(ag.team.equals(agent.getTeam()) && ag.health != 0){
+						a += 1;
+						if(name == null || (name != null && name.compareTo(agent.getName()) < 0)){
+							name = ag.name;
+						}
+					}
+					else if(!ag.team.equals(agent.getTeam()) && ag.health != null && ag.health != 0){
+						b += 1;
+					}
+				}
+			}
+			if(a > b && name.compareTo(agent.getName()) < 0){
+				System.out.println("agent " + agent.getName() + " is leaving");
+				return shortestPath(pos, max.id);
+			}
+			return new LinkedList<String>();
+		}
+		return shortestPath(pos, max.id);
 	}
 }

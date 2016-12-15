@@ -4,8 +4,11 @@ import java.util.Map;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 import eis.iilang.Action;
 import massim.javaagents.Agent;
+import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -130,7 +133,15 @@ public class Explorer extends RedAgent
 			return surveyGreedy();
 		}
 		
-		return skipAction();
+		LinkedList<String> n = graph.territory(this.position, this);
+		if(n == null){
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+		}
+		else if(n.size() == 0){
+			return MarsUtil.rechargeAction();
+		}
+		return gotoGreedy(n.removeFirst());
 
 	
 

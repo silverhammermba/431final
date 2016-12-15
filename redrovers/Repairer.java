@@ -248,15 +248,29 @@ public class Repairer extends RedAgent
 		}
 		else if(path == null){
 			goalAgent = null;
-			List<String> nodes = graph.nodesAtRange(position, 1);
-			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			LinkedList<String> n = graph.territory(this.position, this);
+			if(n == null){
+				List<String> nodes = graph.nodesAtRange(position, 1);
+				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			}
+			else if(n.size() == 0){
+				return MarsUtil.rechargeAction();
+			}
+			return gotoGreedy(n.removeFirst());
 		}
 		else if(goalAgent == null && path.size() == 0){
 			path = null;
 			return surveyAction();
 		}
 
-		List<String> nodes = graph.nodesAtRange(position, 1);
-		return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+		LinkedList<String> n = graph.territory(this.position, this);
+		if(n == null){
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+		}
+		else if(n.size() == 0){
+			return MarsUtil.rechargeAction();
+		}
+		return gotoGreedy(n.removeFirst());
 	}
 }

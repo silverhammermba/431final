@@ -47,15 +47,36 @@ public class Sentinel extends RedAgent
 		return graph.shortestPath(position, (id) -> pos.contains(id));
 	}
 	
+	LinkedList<String> pathToSabotAgent(Function<OtherAgent, Boolean> test)
+	{
+		Set<String> pos = new HashSet<String>();
+		for (OtherAgent agent : agents.values())
+		{
+			if (!agent.team.equals(getTeam())) continue;
+			if (test.apply(agent))
+				pos.add(agent.position);
+		}
+
+		if (pos.isEmpty()) return null;
+
+		return graph.shortestPath(position, (id) -> pos.contains(id));
+	}
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
 		
+		// Agent recharges if its energy drops to zero
 		if(energy == 0)
 		{
 			return rechargeAction();
 		}
 		
+		/** 
+		  * If agent's health drops to zero
+		  * Look for the nearest repairer	
+		  * Return the shortest path to the Repairer
+		  * Get Repaired
+		  */
 		if(health == 0)
 		{
 			LinkedList<String> p = pathToSentAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
@@ -67,18 +88,21 @@ public class Sentinel extends RedAgent
 			return gotoGreedy(p.pop());
 		}
 		
+		// Survey the adjacent edges
 		if (graph.unsurveyedEdges(position))
 		{
 			return surveyGreedy();
 		}
 		
+		// Explore the graph and goto the unsurveyed edges 
 		LinkedList<String> path = graph.explore(position);
 		if (path != null)
 		{
 			return gotoGreedy(path.pop());
 		}
 		
-		path = pathToSentAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Saboteur"));
+		// Agent paries an attack whenever the enemy's Saboteur launches an attack
+		path = pathToSabotAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Saboteur"));
 		if (path != null)
 		{
 			if(path.size()==0)
@@ -255,8 +279,24 @@ public class Sentinel extends RedAgent
 			return surveyAction();
 		}
 
-		return skipAction();
+			LinkedList<String> n = graph.territory(this.position, this);
+			if(n == null){
+				List<String> nodes = graph.nodesAtRange(position, 1);
+				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			}
+			else if(n.size() == 0){
+				return MarsUtil.rechargeAction();
+			}
+			return gotoGreedy(n.removeFirst());
 	}
-	return skipAction();
+		LinkedList<String> n = graph.territory(this.position, this);
+		if(n == null){
+			List<String> nodes = graph.nodesAtRange(position, 1);
+			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+		}
+		else if(n.size() == 0){
+			return MarsUtil.rechargeAction();
+		}
+		return gotoGreedy(n.removeFirst());
 }
 }
