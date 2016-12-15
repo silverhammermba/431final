@@ -31,35 +31,6 @@ public class Sentinel extends RedAgent
 		goalAgent = null;
 	}
 
-	LinkedList<String> pathToSentAgent(Function<OtherAgent, Boolean> test)
-	{
-		Set<String> pos = new HashSet<String>();
-		for (OtherAgent agent : agents.values())
-		{
-			if (agent.team.equals(getTeam())) continue;
-			if (!agent.knownDamaged() && test.apply(agent))
-				pos.add(agent.position);
-		}
-
-		if (pos.isEmpty()) return null;
-
-		return graph.shortestPath(position, (id) -> pos.contains(id));
-	}
-	
-	LinkedList<String> pathToSabotAgent(Function<OtherAgent, Boolean> test)
-	{
-		Set<String> pos = new HashSet<String>();
-		for (OtherAgent agent : agents.values())
-		{
-			if (!agent.team.equals(getTeam())) continue;
-			if (test.apply(agent))
-				pos.add(agent.position);
-		}
-
-		if (pos.isEmpty()) return null;
-
-		return graph.shortestPath(position, (id) -> pos.contains(id));
-	}
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
@@ -78,15 +49,19 @@ public class Sentinel extends RedAgent
 		  */
 		if(health == 0)
 		{
-			LinkedList<String> p = pathToSentAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
-			
-			if(p == null || p.size() == 0)
-			{
-				return MarsUtil.skipAction();
-			}
-			return gotoGreedy(p.pop());
+			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
+
+			if (agent == null)
+				return rechargeAction();
+
+			LinkedList<String> path = graph.shortestPath(position, agent.position);
+
+			if (path != null && path.size() > 1)
+				return gotoGreedy(path.pop());
+
+			return rechargeAction();
 		}
-		
+					
 		// Survey the adjacent edges
 		if (graph.unsurveyedEdges(position))
 		{
@@ -101,13 +76,11 @@ public class Sentinel extends RedAgent
 		}
 		
 		// Agent paries an attack whenever the enemy's Saboteur launches an attack
-		path = pathToSabotAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Saboteur"));
-		if (path != null)
+		OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Saboteur".equals(ag.role));
+		path = graph.shortestPath(position, agent.position);
+		if (path != null && path.size()==0)
 		{
-			if(path.size()==0)
-			{
-				return parryAction();
-			}
+			return parryAction();
 		}
 		
 		if(goalAgent != null){
