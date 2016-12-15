@@ -31,9 +31,11 @@ public class Explorer extends RedAgent
 	{
 		if (wrongRole()) return skipAction();
 		
+		
+		//if disabled, move to a repairer
 		if (health == 0)
 		{
-			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Explorer".equals(ag.role));
+			OtherAgent agent = graph.nearestAgent(this, (ag) -> getTeam().equals(ag.team) && "Repairer".equals(ag.role));
 
 			if (agent == null)
 				return rechargeAction();
@@ -48,10 +50,7 @@ public class Explorer extends RedAgent
 
 		
 		
-			
-		
-		
-		//Map<String, OtherAgent> agentsCopy = agents;
+	
 		//probe the node 
 		if(graph.nodeValue(position) == null){ 
 			boolean flag = true; //whether this agent should probe
@@ -77,7 +76,7 @@ public class Explorer extends RedAgent
 		
 	
 
-		
+		//go to other place to probe
 		String pos;
 		for (OtherAgent agent : agents.values()){
 			if (getName().compareTo(agent.name) == 0){
