@@ -70,19 +70,32 @@ public class Sentinel extends RedAgent
 			return surveyGreedy();
 		}
 		
-		// Agent paries an attack whenever the enemy's Saboteur launches an attack
+		// Explore the graph and goto the unsurveyed edges 
+		LinkedList<String> path = graph.explore(position);
+		if (path != null)
+		{
+			return gotoGreedy(path.pop());
+		}
+		/*
+		 * Agent should parry an attack whenever the enemy's Saboteur launches an attack
+		 * Better approch is to 
+		*/
 		OtherAgent agent = graph.nearestAgent(this, (ag) -> !getTeam().equals(ag.team) && "Saboteur".equals(ag.role));
 		if (agent!=null)
 			path = graph.shortestPath(position, agent.position);
 
 		if (path.size() <= 1)
 		{
-			// Explore the graph and goto the unsurveyed edges 
-			LinkedList<String> path = graph.explore(position);
-			if (path != null)
+			Set<String> saboteurPositions = new HashSet<String>();
+			for(OtherAgent ag : agents.values())
 			{
-			return gotoGreedy(path.pop());
+				if(!getTeam().equals(agent.team)&& "Saboteur".equals(agent.role)&& agent.position != null)
+				{
+					saboteurPositions.add(agent.position);
+				}
 			}
+			LinkedList<String> p1 = graph.shortestPath(position, (id) -> !saboteurPositions.contains(id));
+			return gotoGreedy(p1.pop());
 		}
 		
 		if(goalAgent != null){
