@@ -13,14 +13,16 @@ public class OtherAgent
 	public String team;
 	public String role;
 	public String position;
+	public Integer positionAge;
 	public Integer energy;
 	public Integer maxEnergy;
 	public Integer health;
+	public Integer healthAge;
 	public Integer maxHealth;
 	public Integer visRange;
 	public Integer strength;
-	public Integer step;
 	public Action nextAction;
+	public Integer actionStep;
 
 	public OtherAgent(String name, String team)
 	{
@@ -47,7 +49,7 @@ public class OtherAgent
 	 */
 	public Action next(int step)
 	{
-		if (this.step == null || nextAction == null || !this.step.equals(step)) return null;
+		if (this.actionStep == null || nextAction == null || !this.actionStep.equals(step)) return null;
 		return nextAction;
 	}
 
@@ -58,12 +60,12 @@ public class OtherAgent
 		str += name;
 		if (team != null) str += " (" + team + ")";
 		if (role != null) str += " - " + role;
-		if (health != null && maxHealth != null) str += ", ❤ " + health + "/" + maxHealth;
+		if (health != null && maxHealth != null) str += ", ❤ " + health + "/" + maxHealth + " (" + healthAge + ")";
 		if (energy != null && maxEnergy != null) str += ", ⚡ " + energy + "/" + maxEnergy;
 		if (visRange != null) str += ", → " + visRange;
 		if (strength != null) str += ", † " + strength;
-		if (position != null) str += ", " + position;
-		if (nextAction != null) str += " " + nextAction + " (" + step + ")";
+		if (position != null) str += ", " + position + " (" + healthAge + ")";
+		if (nextAction != null) str += " " + nextAction + " (" + actionStep + ")";
 
 		return str;
 	}

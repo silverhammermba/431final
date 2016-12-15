@@ -7,11 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
@@ -29,36 +27,15 @@ import massim.javaagents.agents.MarsUtil;
  */
 public class Repairer extends RedAgent
 {
-	private OtherAgent goalAgent;	
+	private OtherAgent goalAgent;
 	private LinkedList<String> path;
+
 	public Repairer(String name, String team)
 	{
 		super(name,team);
 		goalAgent = null;
 	}
 
-	/* I think this will be helpful for refactoring this agent. Returns a path
-	 * to the nearest damaged agent on our team satisfying a test. for example:
-	 *
-	 * pathToDamagedAgent((agent) -> agent.role != null && agent.role.equals("Explorer"))
-	 * returns a path to the nearest damaged explorer on our team (if any)
-	 */
-	LinkedList<String> pathToDamagedAgent(Function<OtherAgent, Boolean> test)
-	{
-		Set<String> pos = new HashSet<String>();
-		for (OtherAgent agent : agents.values())
-		{
-			if (!agent.team.equals(getTeam())) continue;
-			if (agent.knownDamaged() && test.apply(agent))
-				pos.add(agent.position);
-		}
-
-		if (pos.isEmpty()) return null;
-
-		return graph.shortestPath(position, (id) -> pos.contains(id));
-	}
-
-	
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
@@ -79,7 +56,7 @@ public class Repairer extends RedAgent
 				LinkedList<String> l = graph.explore(position);
 				if(l != null && l.size() != 0){
 					String n = l.removeFirst();
-					
+
 					return gotoGreedy(n);
 				}
 				else{
@@ -105,8 +82,8 @@ public class Repairer extends RedAgent
 				int weight = graph.edgeWeight(position, next);
 				for(OtherAgent agent: agents.values()){
 					if(agent.team.equals(this.getTeam()) && agent.role.equals("Repairer")){
-						Action doing = agent.nextAction;
-						if(doing.getName().equals("goto")){
+						Action doing = agent.next(step);
+						if(doing != null && doing.getName().equals("goto")){
 							String node = doing.getParameters().get(0).toString();
 							if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
 								List<String> nodes = graph.nodesAtRange(position, 1);
@@ -118,11 +95,10 @@ public class Repairer extends RedAgent
 				return gotoGreedy(next);
 			}
 		}
-		
+
 		return findGoal();
 	}
-	
-	
+
 	void checkGoal(){
 		int health = goalAgent.health;
 		//check if already repaired
@@ -137,80 +113,18 @@ public class Repairer extends RedAgent
 	
 	
 	Action findGoal(){
-		List<OtherAgent> disabled = new ArrayList<OtherAgent>();
-		List<OtherAgent> damaged = new ArrayList<OtherAgent>();
-		List<OtherAgent> priority = new ArrayList<OtherAgent>();
-		for(OtherAgent agent : agents.values()){
-			if(agent.role == null){
-				continue;
-			}
-			if(agent.team.equals(this.getTeam())){
-				if((agent.role.equals("Explorer") || agent.role.equals("Repairer") || agent.role.equals("Saboteur")) && agent.health < agent.maxHealth){
-					priority.add(agent);
-				}
-				else if(agent.health != null && agent.health == 0){
-					disabled.add(agent);
-				}
-				else if(agent.knownDamaged()){
-					damaged.add(agent);
-				}
-			}
-		}
-		if(priority.size() != 0){
-			LinkedList<String> closest = new LinkedList<String>();
-			OtherAgent goal = null;
-			for(OtherAgent agent : priority){
-				LinkedList<String> temp = graph.shortestPath(position, agent.position);
-				if(temp != null && closest.size() == 0){
-					closest = graph.shortestPath(position, agent.position);
-					goal = agent;
-				}
-				if(temp != null && temp.size() < closest.size()){
-					closest = temp;
-					goal = agent;
-				}
-			}
-			path = closest;
-			goalAgent = goal;
-		}
-		if(path == null && disabled.size() != 0){
-			LinkedList<String> closest = new LinkedList<String>();
-			OtherAgent goal = null;
-			for(OtherAgent agent : disabled){
-				LinkedList<String> temp = graph.shortestPath(position, agent.position);
-				if(temp != null && closest.size() == 0){
-					closest = graph.shortestPath(position, agent.position);
-					goal = agent;
-				}
-				else if(temp != null && temp.size() < closest.size()){
-					closest = temp;
-					goal = agent;
-				}
-			}
-			path = closest;
-			goalAgent = goal;
-		}
-		if(path == null && damaged.size() != 0){
-			LinkedList<String> closest = new LinkedList<String>();
-			OtherAgent goal = null;
-			for(OtherAgent agent : damaged){
-				LinkedList<String> temp = graph.shortestPath(position, agent.position);
-				if(temp != null && closest.size() == 0){
-					closest = graph.shortestPath(position, agent.position);
-					goal = agent;
-				}
-				if(temp != null && temp.size() < closest.size()){
-					closest = temp;
-					goal = agent;
-				}
-			}
-			path = closest;
-			goalAgent = goal;
-		}
-		if(goalAgent == null){
+		goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && agent.knownDamaged() && ("Explorer".equals(agent.role) || "Repairer".equals(agent.role) || "Saboteur".equals(agent.role)));
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && agent.health != null && agent.health == 0);
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && agent.knownDamaged());
+
+		if (goalAgent != null)
+			path = graph.shortestPath(position, goalAgent.position);
+		else
+		{
 			path = graph.explore(position);
 			goalAgent = null;
 		}
+
 		if(path != null && path.size() != 0){
 			String next = path.removeFirst();
 			int weight = graph.edgeWeight(position, next);
@@ -223,8 +137,8 @@ public class Repairer extends RedAgent
 			}
 			for(OtherAgent agent: agents.values()){
 				if(agent.team.equals(this.getTeam())){
-					Action doing = agent.nextAction;
-					if(doing.getName().equals("goto")){
+					Action doing = agent.next(step);
+					if(doing != null && doing.getName().equals("goto")){
 						String node = doing.getParameters().get(0).toString();
 						if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
 							List<String> nodes = graph.nodesAtRange(position, 1);
@@ -248,8 +162,15 @@ public class Repairer extends RedAgent
 		}
 		else if(path == null){
 			goalAgent = null;
-			List<String> nodes = graph.nodesAtRange(position, 1);
-			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			LinkedList<String> n = graph.territory(this.position, this);
+			if(n == null){
+				List<String> nodes = graph.nodesAtRange(position, 1);
+				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
+			}
+			else if(n.size() == 0){
+				return MarsUtil.rechargeAction();
+			}
+			return gotoGreedy(n.removeFirst());
 		}
 		else if(goalAgent == null && path.size() == 0){
 			path = null;

@@ -153,7 +153,10 @@ public abstract class RedAgent extends Agent
 	private void resetAgents()
 	{
 		for (OtherAgent agent : agents.values())
-			agent.position = null;
+		{
+			if (agent.positionAge != null) ++agent.positionAge;
+			if (agent.healthAge != null) ++agent.healthAge;
+		}
 		for (Graph.Node node: graph.nodes.values()){
 			node.team = null;
 		}
@@ -217,20 +220,25 @@ public abstract class RedAgent extends Agent
 					broadcastBelief(belief);
 				}
 				else
+				{
 					sender.health = Integer.parseInt(params.get(0));
+					sender.healthAge = 0;
+				}
 				break;
 			case "inspectedEntity":
 				if (params.get(0).equals(getName())) break;
 				agent = getAgent(params.get(0), params.get(1));
-				agent.team      = params.get(1);
-				agent.role      = params.get(2);
-				agent.position  = params.get(3);
-				agent.energy    = Integer.parseInt(params.get(4));
-				agent.maxEnergy = Integer.parseInt(params.get(5));
-				agent.health    = Integer.parseInt(params.get(6));
-				agent.maxHealth = Integer.parseInt(params.get(7));
-				agent.strength  = Integer.parseInt(params.get(8));
-				agent.visRange  = Integer.parseInt(params.get(9));
+				agent.team        = params.get(1);
+				agent.role        = params.get(2);
+				agent.position    = params.get(3);
+				agent.positionAge = 0;
+				agent.energy      = Integer.parseInt(params.get(4));
+				agent.maxEnergy   = Integer.parseInt(params.get(5));
+				agent.health      = Integer.parseInt(params.get(6));
+				agent.healthAge   = 0;
+				agent.maxHealth   = Integer.parseInt(params.get(7));
+				agent.strength    = Integer.parseInt(params.get(8));
+				agent.visRange    = Integer.parseInt(params.get(9));
 
 				if (sender == null)
 					broadcastBelief(belief);
@@ -284,7 +292,7 @@ public abstract class RedAgent extends Agent
 				money = Integer.parseInt(params.get(0));
 				break;
 			case "nextAction":
-				sender.step = Integer.parseInt(params.get(1));
+				sender.actionStep = Integer.parseInt(params.get(1));
 
 				LinkedList<Parameter> aparams = new LinkedList<Parameter>();
 				for (String param : params.subList(2, params.size()))
@@ -302,7 +310,10 @@ public abstract class RedAgent extends Agent
 					broadcastBelief(belief);
 				}
 				else
+				{
 					sender.position = pos;
+					sender.positionAge = 0;
+				}
 				break;
 			case "probedVertex":
 				graph.nodeValue(params.get(0), Integer.parseInt(params.get(1)));
@@ -356,11 +367,18 @@ public abstract class RedAgent extends Agent
 				if (params.get(0).equals(getName())) break;
 				agent = getAgent(params.get(0), params.get(2));
 				agent.position = params.get(1);
+				agent.positionAge = 0;
 				agent.team = params.get(2);
 				if (params.get(3).equals("disabled"))
+				{
 					agent.health = 0;
+					agent.healthAge = 0;
+				}
 				else if (agent.health != null && agent.health == 0)
+				{
 					agent.health = agent.maxHealth;
+					if (agent.health != null) agent.healthAge = 0;
+				}
 				if (sender == null)
 					broadcastBelief(belief);
 				break;
