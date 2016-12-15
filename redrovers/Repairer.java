@@ -53,6 +53,28 @@ public class Repairer extends RedAgent
 			if(path == null){
 				goalAgent = null;
 				LinkedList<String> l = graph.explore(position);
+				if(l != null){
+					String myGoal = l.peekLast();
+					ArrayList<String> goals = new ArrayList<String>();
+					for(OtherAgent agent: agents.values()){
+						if(agent.team.equals(this.getTeam())){
+							if(agent.goal != null){
+								goals.add(agent.goal);
+							}
+						}
+					}
+					while(goals.contains(myGoal)){
+						l = graph.shortestPath(position, (id) -> (graph.unknownEdges(id) || graph.unsurveyedEdges(id)) && !goals.contains(id));
+						if(l != null){
+							myGoal = path.peekLast();
+						}
+						else{
+							myGoal = null;
+						}
+					}
+					setGoal(myGoal);
+				}
+				
 				if(l != null && l.size() != 0){
 					String n = l.removeFirst();
 
@@ -72,6 +94,7 @@ public class Repairer extends RedAgent
 					path = null;
 					String name = goalAgent.name;
 					goalAgent = null;
+					this.setGoal(null);
 					return repairAction(name);
 				}
 			}
@@ -83,7 +106,7 @@ public class Repairer extends RedAgent
 					if(agent.team.equals(this.getTeam()) && agent.role.equals("Repairer")){
 						Action doing = agent.next(step);
 						if(doing != null && doing.getName().equals("goto")){
-							String node = doing.getParameters().get(0).toString();
+							String node = "" + doing.getParameters().get(0);
 							if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
 								List<String> nodes = graph.nodesAtRange(position, 1);
 								return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
@@ -104,8 +127,10 @@ public class Repairer extends RedAgent
 		if(health == goalAgent.maxHealth){
 			goalAgent = null;
 			path = null;
+			this.setGoal(null);
 		}
 		else{
+			this.setGoal(goalAgent.position);
 			path = graph.shortestPath(position, goalAgent.position);
 		}
 	}
@@ -126,12 +151,33 @@ public class Repairer extends RedAgent
 		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.knownDamaged());
 
 		if (goalAgent != null){
-			setGoal(goalAgent.position);
+			this.setGoal(goalAgent.position);
 			path = graph.shortestPath(position, goalAgent.position);
 		}
 		else
 		{
 			path = graph.explore(position);
+			if(path != null){
+				String myGoal = path.peekLast();
+				ArrayList<String> goals = new ArrayList<String>();
+				for(OtherAgent agent: agents.values()){
+					if(agent.team.equals(this.getTeam())){
+						if(agent.goal != null){
+							goals.add(agent.goal);
+						}
+					}
+				}
+				while(goals.contains(myGoal)){
+					path = graph.shortestPath(position, (id) -> (graph.unknownEdges(id) || graph.unsurveyedEdges(id)) && !goals.contains(id));
+					if(path != null){
+						myGoal = path.peekLast();
+					}
+					else{
+						myGoal = null;
+					}
+				}
+				setGoal(myGoal);
+			}
 			goalAgent = null;
 		}
 
@@ -149,7 +195,7 @@ public class Repairer extends RedAgent
 				if(agent.team.equals(this.getTeam())){
 					Action doing = agent.next(step);
 					if(doing != null && doing.getName().equals("goto")){
-						String node = doing.getParameters().get(0).toString();
+						String node = "" + doing.getParameters().get(0);
 						if(node.equals(next) && agent.name.compareTo(this.getName()) < 0){
 							List<String> nodes = graph.nodesAtRange(position, 1);
 							return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
@@ -167,6 +213,7 @@ public class Repairer extends RedAgent
 				path = null;
 				String name = goalAgent.name;
 				goalAgent = null;
+				this.setGoal(null);
 				return repairAction(name);
 			}
 		}
@@ -184,6 +231,7 @@ public class Repairer extends RedAgent
 		}
 		else if(goalAgent == null && path.size() == 0){
 			path = null;
+			setGoal(null);
 			return surveyAction();
 		}
 

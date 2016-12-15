@@ -67,6 +67,27 @@ public class Saboteur extends RedAgent
 			else if(path == null){
 				System.out.println("Cant get to repairer");
 				p = graph.explore(position);
+				if(p != null){
+					String myGoal = p.peekLast();
+					ArrayList<String> goals = new ArrayList<String>();
+					for(OtherAgent agent: agents.values()){
+						if(agent.team.equals(this.getTeam())){
+							if(agent.goal != null){
+								goals.add(agent.goal);
+							}
+						}
+					}
+					while(goals.contains(myGoal)){
+						p = graph.shortestPath(position, (id) -> (graph.unknownEdges(id) || graph.unsurveyedEdges(id)) && !goals.contains(id));
+						if(path != null){
+							myGoal = p.peekLast();
+						}
+						else{
+							myGoal = null;
+						};
+					}
+					setGoal(myGoal);
+				}
 			}
 			if(p == null || p.size() == 0){
 				return skipAction();
@@ -84,6 +105,27 @@ public class Saboteur extends RedAgent
 			if(path == null){
 				goalAgent = null;
 				LinkedList<String> l = graph.explore(position);
+				if(l != null){
+					String myGoal = l.peekLast();
+					ArrayList<String> goals = new ArrayList<String>();
+					for(OtherAgent agent: agents.values()){
+						if(agent.team.equals(this.getTeam())){
+							if(agent.goal != null){
+								goals.add(agent.goal);
+							}
+						}
+					}
+					while(goals.contains(myGoal)){
+						l = graph.shortestPath(position, (id) -> (graph.unknownEdges(id) || graph.unsurveyedEdges(id)) && !goals.contains(id));
+						if(path != null){
+							myGoal = l.peekLast();
+						}
+						else{
+							myGoal = null;
+						}
+					}
+					setGoal(myGoal);
+				}
 				if(l != null && l.size() != 0){
 					String n = l.removeFirst();
 					
@@ -223,6 +265,27 @@ public class Saboteur extends RedAgent
 		}
 		if(goalAgent == null){
 			path = graph.explore(position);
+			if(path != null){
+				String myGoal = path.peekLast();
+				ArrayList<String> goals = new ArrayList<String>();
+				for(OtherAgent agent: agents.values()){
+					if(agent.team.equals(this.getTeam())){
+						if(agent.goal != null){
+							goals.add(agent.goal);
+						}
+					}
+				}
+				while(goals.contains(myGoal)){
+					path = graph.shortestPath(position, (id) -> (graph.unknownEdges(id) || graph.unsurveyedEdges(id)) && !goals.contains(id));
+					if(path != null){
+						myGoal = path.peekLast();
+					}
+					else{
+						myGoal = null;
+					}
+				}
+				setGoal(myGoal);
+			}
 			goalAgent = null;
 			if(path == null){
 
@@ -253,7 +316,7 @@ public class Saboteur extends RedAgent
 				if(agent.team.equals(this.getTeam())){
 					Action doing = agent.nextAction;
 					if(doing.getName().equals("goto")){
-						String node = doing.getParameters().get(0).toString();
+						String node = "" + doing.getParameters().get(0);
 						if(node.equals(next)&& agent.name.compareTo(this.getName()) < 0){
 							List<String> nodes = graph.nodesAtRange(position, 1);
 							return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
@@ -266,6 +329,7 @@ public class Saboteur extends RedAgent
 
 		else if(goalAgent == null && path.size() == 0){
 			path = null;
+			setGoal(null);
 			return surveyAction();
 		}
 		goalAgent = null;
