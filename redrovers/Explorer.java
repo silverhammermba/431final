@@ -17,10 +17,7 @@ import massim.javaagents.Agent;
  */
 public class Explorer extends RedAgent
 {
-
 	private LinkedList<String> pathList; //store current path node list
-
-
 
 	public Explorer(String name, String team)
 	{
@@ -30,8 +27,7 @@ public class Explorer extends RedAgent
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
-		
-		
+
 		//if disabled, move to a repairer
 		if (health == 0)
 		{
@@ -48,35 +44,29 @@ public class Explorer extends RedAgent
 			return rechargeAction();
 		}
 
-		
-		
-	
-		//probe the node 
-		if(graph.nodeValue(position) == null){ 
+		//probe the node
+		if(graph.nodeValue(position) == null){
 			boolean flag = true; //whether this agent should probe
-			
-			for (OtherAgent agent : agents.values()){
+
+			for (OtherAgent agent : agents.values())
+			{
 				//if there is another explorer at same node, the agent with bigger name probe it
-				if (getTeam().equals(agent.team) &&        
-						position.equals(agent.position) &&
-						role.equals(agent.role) &&
-						agent.health <= 0 &&
-						getName().compareTo(agent.name) < 0){
-					flag = false; //another agent will probe 
+				if (getTeam().equals(agent.team) &&
+					position.equals(agent.position) &&
+					role.equals(agent.role) &&
+					agent.health > 0 &&
+					getName().compareTo(agent.name) < 0)
+				{
+					flag = false; //another agent will probe
 					break;
-					
 				}
 			}
-			
+
 			if(flag) return probeGreedy();
 		}
-		
-		
-	
-	
-	
+
 		this.pathList = null;
-		
+
 		for (OtherAgent agent : agents.values()){
 			if(role.equals(agent.role) && getTeam().equals(agent.team)) {
 				this.pathList = graph.shortestPath(position, (id) ->
@@ -84,26 +74,21 @@ public class Explorer extends RedAgent
 			}
 	    }
 
-		
-		
 		if(this.pathList != null && this.pathList.size() != 0){
 			setGoal(pathList.get(pathList.size() - 1));
 		}else{
 			setGoal(null);
 		}
-		
-		
 
-		
 		if(this.pathList != null && this.pathList.size() != 0){
 			return gotoGreedy(pathList.pop());
 		}
-		
-		//try to survey	
+
+		//try to survey
 		if(graph.unsurveyedEdges(position)){
 			return surveyGreedy();
 		}
-		
+
 		LinkedList<String> n = graph.territory(this);
 		if(n == null){
 			List<String> nodes = graph.nodesAtRange(position, 1);
@@ -114,8 +99,5 @@ public class Explorer extends RedAgent
 		}
 
 		return gotoGreedy(n.removeFirst());
-
 	}
-		
-	
 }
