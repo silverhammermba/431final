@@ -580,52 +580,52 @@ public class Graph
 		return null;
 	}
 
-	public LinkedList<String> territory(String pos, RedAgent agent){
+	public LinkedList<String> territory(RedAgent agent)
+	{
 		Node max = null;
-		LinkedList<String> l = null;
-		for(Node node: nodes.values()){
-			if(node.team != null && node.team.equals(agent.getTeam())){
-				continue;
-			}
-			if(max == null && node.value != null){
-				l = shortestPath(pos, node.id);
-				if(l != null){
-					max = node;
-				}
-			}
-			else if(max != null && node.value != null && node.value > max.value){
-				l = shortestPath(pos, node.id);
-				if(l != null){
-					max = node;
-				}
+		LinkedList<String> pathToMax = null;
+		for (Node node: nodes.values())
+		{
+			if (agent.getTeam().equals(node.team)) continue;
+			if (node.value != null && (max == null || node.value > max.value))
+			{
+				pathToMax = shortestPath(agent.position, node.id);
+				if (pathToMax != null) max = node;
 			}
 		}
-		if(max == null){
-			return null;
-		}
-		else if(nodes.get(pos).value != null && nodes.get(pos).value >= max.value){
+
+		if (max == null) return null;
+
+		if (getNode(agent.position).value != null && getNode(agent.position).value >= max.value)
+		{
 			int a = 0;
 			int b = 0;
 			String name = null;
-			for(OtherAgent ag: agent.agents.values()){
-				if(ag.team.equals(agent.getTeam()) && ag.position.equals(pos)){
-					if(ag.team.equals(agent.getTeam()) && ag.health != 0){
+			for (OtherAgent ag: agent.agents.values())
+			{
+				if (agent.position.equals(ag.position) && ag.positionAge == 0)
+				{
+					if (ag.health != null && ag.health.equals(0)) continue;
+					if (ag.team.equals(agent.getTeam()))
+					{
 						a += 1;
 						if(name == null || (name != null && name.compareTo(agent.getName()) < 0)){
 							name = ag.name;
 						}
 					}
-					else if(!ag.team.equals(agent.getTeam()) && ag.health != null && ag.health != 0){
+					else {
 						b += 1;
 					}
 				}
 			}
-			if((a > b || a + b > 4) && name.compareTo(agent.getName()) < 0){
+			if ((a > b || a + b > 4) && name.compareTo(agent.getName()) < 0)
+			{
 				System.out.println("agent " + agent.getName() + " is leaving");
-				return shortestPath(pos, max.id);
+				return pathToMax;
 			}
 			return new LinkedList<String>();
 		}
-		return shortestPath(pos, max.id);
+
+		return pathToMax;
 	}
 }
