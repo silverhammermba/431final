@@ -76,10 +76,12 @@ public class Sentinel extends RedAgent
 		{
 			return gotoGreedy(path.pop());
 		}
+		
 		/*
 		 * Agent should parry an attack whenever the enemy's Saboteur launches an attack
-		 * Better approch is to 
-		*/
+		 * Whenever the saboteur is in close proximity to the Sentinel
+		 * Better approach is to move to a new location that does not contain any nearby enemy's saboteurs  
+		 */
 		OtherAgent agent = graph.nearestAgent(this, (ag) -> !getTeam().equals(ag.team) && "Saboteur".equals(ag.role));
 		if (agent!=null)
 			path = graph.shortestPath(position, agent.position);
