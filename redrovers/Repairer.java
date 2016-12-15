@@ -17,7 +17,6 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.

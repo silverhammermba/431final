@@ -300,6 +300,9 @@ public abstract class RedAgent extends Agent
 
 				sender.nextAction = new Action(params.get(0), aparams);
 				break;
+			case "goal":
+				sender.goal = params.get(0).equals("null") ? null : params.get(0);
+				break;
 			case "position":
 				String pos = params.get(0);
 				// we will at least get visibleEdge beliefs for this pos
@@ -658,6 +661,11 @@ public abstract class RedAgent extends Agent
 		if (role.equals(getClass().getSimpleName())) return false;
 		System.err.println(role + " agent is running class " + getClass().getSimpleName());
 		return true;
+	}
+
+	protected void broadcastGoal(String id)
+	{
+		broadcastBelief(new LogicBelief("goal", id == null ? "null" : id));
 	}
 
 	// convert a belief to an action, adding the current step as a parameter

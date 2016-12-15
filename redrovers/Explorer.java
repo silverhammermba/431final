@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import eis.iilang.Action;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -139,7 +138,7 @@ public class Explorer extends RedAgent
 			return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 		}
 		else if(n.size() == 0){
-			return MarsUtil.rechargeAction();
+			return rechargeAction();
 		}
 		return gotoGreedy(n.removeFirst());
 

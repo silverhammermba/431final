@@ -19,7 +19,6 @@ import apltk.interpreter.data.Belief;
 import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 /**
  * An agent that probes nodes that are in range.
@@ -226,6 +225,7 @@ public class Saboteur extends RedAgent
 			path = graph.explore(position);
 			goalAgent = null;
 			if(path == null){
+
 				LinkedList<String> n = graph.territory(this.position, this);
 				if(n == null){
 					List<String> nodes = graph.nodesAtRange(position, 1);
@@ -235,6 +235,7 @@ public class Saboteur extends RedAgent
 					return parryGreedy();
 				}
 				return gotoGreedy(n.removeFirst());
+
 			}
 		}
 

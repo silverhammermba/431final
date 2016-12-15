@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import massim.javaagents.Agent;
-import massim.javaagents.agents.MarsUtil;
 
 public class Inspector extends RedAgent
 {
@@ -60,6 +59,13 @@ public class Inspector extends RedAgent
 		// if we've inspected every member of the enemy team
 		if (known == teamSize)
 		{
+			OtherAgent agent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && a.healthAge > 10);
+
+			if (agent != null)
+			{
+				LinkedList<String> path = graph.shortestPath(position, agent.position);
+			}
+
 			// TODO maybe keep inspecting to find out health? secure territory?
 			LinkedList<String> n = graph.territory(this.position, this);
 			if(n == null){
@@ -67,7 +73,7 @@ public class Inspector extends RedAgent
 				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 			}
 			else if(n.size() == 0){
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			return gotoGreedy(n.removeFirst());
 		}
@@ -101,7 +107,7 @@ public class Inspector extends RedAgent
 				return gotoGreedy(nodes.get(ThreadLocalRandom.current().nextInt(0, nodes.size())));
 			}
 			else if(n.size() == 0){
-				return MarsUtil.rechargeAction();
+				return rechargeAction();
 			}
 			return gotoGreedy(n.removeFirst());
 		}
