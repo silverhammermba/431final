@@ -65,12 +65,12 @@ public class Saboteur extends RedAgent
 			return rechargeAction();
 		}
 		if(health == 0){
-			LinkedList<String> p = pathToAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
-
-			if(path != null && (path.size() == 1 || path.size() == 0)){
+			OtherAgent a = graph.nearestAgent(this, (agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
+			LinkedList<String> p = graph.shortestPath(position,  a.position);
+			if(p != null && (p.size() == 1 || p.size() == 0)){
 				return skipAction();
 			}
-			else if(path == null){
+			else if(p == null){
 				System.out.println("Cant get to repairer");
 				p = graph.explore(position);
 				if(p != null){
