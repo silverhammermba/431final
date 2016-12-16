@@ -190,9 +190,9 @@ public class Saboteur extends RedAgent
 	 */
 	Action findGoal(){
 		goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && a.position.equals(position) && a.positionAge == 0 && (a.health == null || a.health != 0));
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.health == null || a.health != 0) && ("Repairer".equals(a.role) || "Explorer".equals(a.role)));
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && a.health != null && a.health != 0 && a.healthAge != null && a.healthAge < 10);
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.healthAge == null || a.healthAge >= 10));
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.positionAge == 0 || !a.position.equals(position)) && (a.health == null || a.health != 0) && ("Repairer".equals(a.role) || "Explorer".equals(a.role)));
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.positionAge == 0 || !a.position.equals(position)) && a.health != null && a.health != 0 && a.healthAge != null && a.healthAge < 10);
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.positionAge == 0 || !a.position.equals(position)) && (a.healthAge == null || a.healthAge >= 10));
 
 		if (goalAgent != null)
 		{
