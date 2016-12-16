@@ -66,7 +66,10 @@ public class Saboteur extends RedAgent
 		}
 		if(health == 0){
 			OtherAgent a = graph.nearestAgent(this, (agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
-			LinkedList<String> p = graph.shortestPath(position,  a.position);
+			LinkedList<String> p = new LinkedList<String>();
+			if(a != null){
+				p = graph.shortestPath(position,  a.position);
+			}
 			if(p != null && (p.size() == 1 || p.size() == 0)){
 				return skipAction();
 			}

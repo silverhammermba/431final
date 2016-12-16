@@ -102,11 +102,16 @@ public class Repairer extends RedAgent
 					String name = goalAgent.name;
 					goalAgent = null;
 					this.setGoal(null);
-					return repairAction(name);
+					return repairGreedy(name);
 				}
 			}
 			else{ //if have a goal agent but not reached yet
 				path = graph.shortestPath(position, goalAgent.position);
+				if(goalAgent.role.equals("Repairer") && goalAgent.goal != null && goalAgent.goal.equals(position)){
+					if(path.size() == 1 && goalAgent.name.compareTo(this.getName()) < 0){
+						return skipAction();
+					}
+				}
 				String next = path.removeFirst();
 				int weight = graph.edgeWeight(position, next);
 				for(OtherAgent agent: agents.values()){
