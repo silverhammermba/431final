@@ -19,10 +19,18 @@ import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 
 /**
- * An agent that probes nodes that are in range.
+ * An agent that repairs team vehicles.
  *
- * Probes the closest nodes first, recharges when it doesn't have enough energy
- * to probe.
+ * <p>Its subsumption rules are:
+ * <ol>
+ * <li>Recharge if out of energy</li>
+ * <li>Repair agent at our position if it needs it</li>
+ * <li>Go to nearest disabled explorer/saboteur/repairer on our team</li>
+ * <li>Go to nearest disabled agent on our team</li>
+ * <li>Go to nearest damaged agent on our team</li>
+ * <li>Explore the graph</li>
+ * <li>Help secure territory</li>
+ * </ol>
  */
 public class Repairer extends RedAgent
 {
@@ -47,7 +55,6 @@ public class Repairer extends RedAgent
 			checkGoal();
 		}
 		if(goalAgent != null && goalAgent.role != null){
-			int health = goalAgent.health;
 			String pos = goalAgent.position;
 			//if the goal is not yet reachable, explore
 			if(path == null){
@@ -74,7 +81,7 @@ public class Repairer extends RedAgent
 					}
 					setGoal(myGoal);
 				}
-				
+
 				if(l != null && l.size() != 0){
 					String n = l.removeFirst();
 

@@ -20,9 +20,21 @@ import apltk.interpreter.data.LogicBelief;
 import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 
+/**
+ * An agent that explores the graph and runs away from stuff.
+ *
+ * <p>Its subsumption rules are:
+ * <ol>
+ * <li>Recharge if out of energy</li>
+ * <li>Go to nearest repairer if disabled</li>
+ * <li>Avoid enemy vehicles (or saboteurs, if known)</li>
+ * <li>Explore the graph</li>
+ * <li>Help secure territory</li>
+ * </ol>
+ */
 public class Sentinel extends RedAgent
 {
-	private OtherAgent goalAgent;	
+	private OtherAgent goalAgent;
 	private LinkedList<String> path;
 
 	public Sentinel(String name, String team)
@@ -41,9 +53,9 @@ public class Sentinel extends RedAgent
 			return rechargeAction();
 		}
 
-		/** 
+		/*
 		 * If agent's health drops to zero
-		 * Look for the nearest repairer	
+		 * Look for the nearest repairer
 		 * Return the shortest path to the Repairer
 		 * Get Repaired
 		 */

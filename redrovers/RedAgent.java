@@ -16,13 +16,17 @@ import massim.javaagents.Agent;
 import massim.javaagents.agents.MarsUtil;
 
 /**
- * This class defines a (slightly) higher-level API on top of the Agent class.
+ * An abstract class defining a (slightly) higher-level API on top of the Agent
+ * class.
  *
  * <p>This class implements the abstract <code>step</code> method, processes
  * all percepts and stores them in appropriate fields for easier access
  * <i>and</i> broadcasts all (relevant) percepts to other agents on the team.
  * Role-specific logic is then handled in the <code>think</code> method, after
  * all percepts and simple messages have been dealt with.
+ *
+ * <p>It also defines wrappers for all the actions so that each agent's next
+ * action is broadcasted to the team.
  */
 public abstract class RedAgent extends Agent
 {
@@ -131,13 +135,13 @@ public abstract class RedAgent extends Agent
 
 	/**
 	 * Handle all percepts sent by other agents, then our own percepts, then
-	 * calls <code>think</code> (if the simulation has started).
+	 * calls {@link #think} (if the simulation has started).
 	 */
 	@Override
 	public Action step()
 	{
 		// reset (some) stale information about other agents
-		resetAgents();
+		resetPercepts();
 		// process messages first, because they might be outdated
 		handleMessages();
 		// then process percepts, possibly updating message info
@@ -153,16 +157,14 @@ public abstract class RedAgent extends Agent
 	 */
 	abstract Action think();
 
-	private void resetAgents()
+	private void resetPercepts()
 	{
 		for (OtherAgent agent : agents.values())
 		{
 			if (agent.positionAge != null) ++agent.positionAge;
 			if (agent.healthAge != null) ++agent.healthAge;
 		}
-		for (Graph.Node node: graph.nodes.values()){
-			node.team = null;
-		}
+		graph.resetNodeTeams();
 	}
 
 	// store all of our own percepts in fields (using handleBelief)
@@ -421,7 +423,6 @@ public abstract class RedAgent extends Agent
 					System.err.println(getName() + " can't handle message " + belief);
 		}
 	}
-
 
 	/**
 	 * @return a string describing most of the percepts
@@ -708,23 +709,6 @@ public abstract class RedAgent extends Agent
 		return new LogicBelief("nextAction", params);
 	}
 
-	// convert a belief to an action, returns null if the action is outdated
-	private Action beliefToAction(LogicBelief belief)
-	{
-		if (!belief.getPredicate().equals("nextAction"))
-			throw new RuntimeException("Attempt to convert non-action belief " + belief);
-
-		List<String> params = belief.getParameters();
-
-		if (Integer.parseInt(params.get(1)) != step) return null;
-
-		LinkedList<Parameter> aparams = new LinkedList<Parameter>();
-		for (String param : params.subList(2, params.size()))
-			aparams.add(new Identifier(param));
-
-		return new Action(params.get(0), aparams);
-	}
-
 	/* The following are wrappers for the various MarsUtil action methods.
 	 * Before returning the action, they broadcast it to the team
 	 */
@@ -854,5 +838,4 @@ public abstract class RedAgent extends Agent
 		broadcastBelief(actionToBelief(action));
 		return action;
 	}
-	
 }

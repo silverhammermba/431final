@@ -13,19 +13,21 @@ import java.util.concurrent.ThreadLocalRandom;
 import apltk.interpreter.data.LogicBelief;
 
 /**
- * This class defines a collection of nodes and edges suitable for storing the
- * map of Mars.
+ * This class defines a collection of vertices and edges suitable for storing
+ * the map of Mars.
  *
- * <p>The internal representations of nodes and edges are private since agents
- * should not rely on them. Instead define public methods for accessing
- * node/edge atrributes through the Graph object e.g. {@link nodesAtRange}.
+ * <p>The internal representations of vertices and edges are private since
+ * agents should not rely on them. Instead we define public methods for accessing
+ * vertex/edge atrributes through the Graph object e.g. {@link nodesAtRange}.
+ *
+ * <p>Also I called the vertices nodes for some reason.
  */
 public class Graph
 {
-	/* A node has an id, value, and a map from IDs to edges. Also a visisted
-	 * flag but that's a bit of hack that we need to think about.
+	/* A node has an id, value, team, and a map from IDs to edges. It also has
+	 * a flag to indicate that it may have more edges that we don't know about.
 	 */
-	 class Node
+	private class Node
 	{
 		public final String id;
 		public final Map<String, Edge> neighbors;
@@ -37,7 +39,6 @@ public class Graph
 		public int distance;
 		public Node pred;
 
-		// TODO handle color
 		public Node(String id)
 		{
 			this.id = id;
@@ -97,8 +98,9 @@ public class Graph
 		}
 	}
 
-	// an edge just a node and a weight (the other node on the edge is
-	// determined by which node has this edge in its neighbors map).
+	/* an edge is just a node and a weight (the other node on the edge is
+	 * determined by which node has this edge in its neighbors map).
+	 */
 	private class Edge
 	{
 		public final Node end;
@@ -134,7 +136,19 @@ public class Graph
 		nodes = new HashMap<String, Node>();
 	}
 
-	/** Indicate whether we know of edge between two nodes.
+	/**
+	 * Reset team ownership of all nodes.
+	 */
+	public void resetNodeTeams()
+	{
+		for (Node node : nodes.values())
+		{
+			node.team = null;
+		}
+	}
+
+	/**
+	 * Indicate whether we know of edge between two nodes.
 	 *
 	 * @param id1 one node's ID
 	 * @param id2 another node's ID
@@ -288,11 +302,11 @@ public class Graph
 	}
 
 	/**
-	 * Get the nearest OtherAgent satisfying some test
+	 * Get the nearest OtherAgent satisfying some condition
 	 *
 	 * @param agent this agent
-	 * @param test the function test if we might want to go to this agent (only
-	 *             runs for agent with non-null position)
+	 * @param test the function to test if we might want to go to an agent
+	 *             (only runs for agents with non-null position)
 	 * @return the nearest agent
 	 */
 	public OtherAgent nearestAgent(RedAgent agent, Function<OtherAgent, Boolean> test)
@@ -435,6 +449,7 @@ public class Graph
 	 * Get the team of a node.
 	 *
 	 * @param id the node's ID
+	 * @return the node's team
 	 */
 	public String nodeTeam(String id)
 	{
@@ -513,13 +528,13 @@ public class Graph
 		List<String> nodes = new ArrayList<String>();
 		for (Node n : next)
 			nodes.add(n.id);
-		
-		
+
+
 		return nodes;
 	}
 
 	/**
-	 * Find range (minimum number of edges) between two nodes
+	 * Find range (minimum number of edges) between two nodes.
 	 *
 	 * <p>TODO shame that this is so similar to shortestPath, but I don't know
 	 * how to DRY it.
@@ -580,6 +595,15 @@ public class Graph
 		return null;
 	}
 
+	/**
+	 * Get a path for the purposes of territory control.
+	 *
+	 * Tries to get the agent to the most valuable unclaimed nodes, while
+	 * preventing bunching.
+	 *
+	 * @param agent the agent that will move
+	 * @return the path, see {@link #shortestPath(String,Function)}
+	 */
 	public LinkedList<String> territory(RedAgent agent)
 	{
 		Node max = null;

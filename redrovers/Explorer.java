@@ -10,10 +10,16 @@ import eis.iilang.Action;
 import massim.javaagents.Agent;
 
 /**
- * An agent that probes nodes that are in range.
+ * An agent that probes vertices.
  *
- * Probes the closest nodes first, recharges when it doesn't have enough energy
- * to probe.
+ * <p>Its subsumption rules are:
+ * <ol>
+ * <li>Get to a repairer if disabled</li>
+ * <li>Probe current vertex if unprobed</li>
+ * <li>Go to nearest unprobed vertex</li>
+ * <li>Explore the graph</li>
+ * <li>Help secure territory</li>
+ * </ol>
  */
 public class Explorer extends RedAgent
 {
@@ -54,7 +60,7 @@ public class Explorer extends RedAgent
 				if (getTeam().equals(agent.team) &&
 					position.equals(agent.position) &&
 					role.equals(agent.role) &&
-					agent.health > 0 &&
+					agent.health != null && agent.health > 0 &&
 					getName().compareTo(agent.name) < 0)
 				{
 					flag = false; //another agent will probe

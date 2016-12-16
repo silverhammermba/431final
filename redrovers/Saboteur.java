@@ -21,10 +21,16 @@ import apltk.interpreter.data.Message;
 import massim.javaagents.Agent;
 
 /**
- * An agent that probes nodes that are in range.
+ * An agent that attacks enemy vehicles.
  *
- * Probes the closest nodes first, recharges when it doesn't have enough energy
- * to probe.
+ * <p>Its subsumption rules are:
+ * <ol>
+ * <li>Get to a repairer if disabled</li>
+ * <li>Probe current vertex if unprobed</li>
+ * <li>Go to nearest unprobed vertex</li>
+ * <li>Explore the graph</li>
+ * <li>Help secure territory</li>
+ * </ol>
  */
 public class Saboteur extends RedAgent
 {
@@ -50,7 +56,7 @@ public class Saboteur extends RedAgent
 
 		return graph.shortestPath(position, (id) -> pos.contains(id));
 	}
-	
+
 	Action think()
 	{
 		if (wrongRole()) return skipAction();
@@ -60,7 +66,7 @@ public class Saboteur extends RedAgent
 		}
 		if(health == 0){
 			LinkedList<String> p = pathToAgent((agent) -> agent.team.equals(this.getTeam()) && agent.role.equals("Repairer"));
-			
+
 			if(path != null && (path.size() == 1 || path.size() == 0)){
 				return skipAction();
 			}
@@ -127,7 +133,7 @@ public class Saboteur extends RedAgent
 				}
 				if(l != null && l.size() != 0){
 					String n = l.removeFirst();
-					
+
 					return gotoGreedy(n);
 				}
 				else{
@@ -161,17 +167,27 @@ public class Saboteur extends RedAgent
 		return findGoal();
 	}
 
+	/**
+	 * Update our current goal
+	 */
 	void checkGoal()
 	{
 		if (goalAgent.health != null && goalAgent.health == 0){
 			goalAgent = null;
+			setGoal(null);
 		}
 		else
 		{
 			path = graph.shortestPath(position, goalAgent.position);
+			setGoal(goalAgent.position);
 		}
 	}
 
+	/**
+	 * Get a new agent to go to or path to follow
+	 *
+	 * @return The next action to perform toward the new goal
+	 */
 	Action findGoal(){
 		goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && a.position.equals(position) && a.positionAge == 0 && (a.health == null || a.health != 0));
 		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (a) -> !getTeam().equals(a.team) && (a.health == null || a.health != 0) && ("Repairer".equals(a.role) || "Explorer".equals(a.role)));

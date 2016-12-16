@@ -7,6 +7,18 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import massim.javaagents.Agent;
 
+/**
+ * An agent that inspects agents on the other team.
+ *
+ * <p>Its subsumption rules are:
+ * <ol>
+ * <li>Get to a repairer if disabled</li>
+ * <li>Inspect enemies with unknown roles</li>
+ * <li>Inspect enemies that have not been inspected for a while</li>
+ * <li>Explore the graph</li>
+ * <li>Help secure territory</li>
+ * </ol>
+ */
 public class Inspector extends RedAgent
 {
 	LinkedList<String> seekPath;
