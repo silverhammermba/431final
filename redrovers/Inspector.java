@@ -38,17 +38,6 @@ public class Inspector extends RedAgent
 			return rechargeAction();
 		}
 
-		// just go somewhere if we're at the same place as the other Inspector
-		for (OtherAgent agent : agents.values())
-		{
-			if (getTeam().equals(agent.team) && role.equals(agent.role) && position.equals(agent.position) && getName().compareTo(agent.name) < 0)
-			{
-				path = graph.shortestPath(position, (id) -> !id.equals(position));
-				if (path == null || path.isEmpty()) return surveyGreedy();
-				return gotoGreedy(path.pop());
-			}
-		}
-
 		// get the other Inspector's goal
 		String tempGoal = null;
 		for (OtherAgent agent : agents.values())

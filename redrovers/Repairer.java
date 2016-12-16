@@ -134,21 +134,23 @@ public class Repairer extends RedAgent
 			path = graph.shortestPath(position, goalAgent.position);
 		}
 	}
-	
-	
-	OtherAgent getRepairer(){
-		for(OtherAgent agent: agents.values()){
-			if(agent.team.equals(this.getTeam()) && agent.role != null && agent.role.equals("Repairer")){
-				return agent;
+
+	Action findGoal()
+	{
+		String tempGoal = null;
+		for (OtherAgent agent: agents.values())
+		{
+			if(agent.team.equals(getTeam()) && "Repairer".equals(agent.role))
+			{
+				tempGoal = agent.goal;
+				break;
 			}
 		}
-		return null;
-	}
-	Action findGoal(){
-		OtherAgent repairer = getRepairer();
-		goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.health != null && agent.health == 0 && ("Explorer".equals(agent.role) || "Repairer".equals(agent.role) || "Saboteur".equals(agent.role)));
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.health != null && agent.health == 0);
-		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && repairer != null && ((repairer.goal != null && repairer.goal!= agent.position ) || repairer.goal == null) && agent.knownDamaged());
+		final String otherGoal = tempGoal;
+
+		goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && !agent.position.equals(otherGoal) && agent.health != null && agent.health == 0 && ("Explorer".equals(agent.role) || "Repairer".equals(agent.role) || "Saboteur".equals(agent.role)));
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && !agent.position.equals(otherGoal) && agent.health != null && agent.health == 0);
+		if (goalAgent == null) goalAgent = graph.nearestAgent(this, (agent) -> getTeam().equals(agent.team) && !agent.position.equals(otherGoal) && agent.knownDamaged());
 
 		if (goalAgent != null){
 			this.setGoal(goalAgent.position);
